@@ -11,6 +11,8 @@
 // Windows Header Files
 #include <windows.h>
 
-
-
+#include "assert.h"
+#include <stdint.h>
+#include <cstring>
+#include <algorithm>
 // reference additional headers your program requires here
