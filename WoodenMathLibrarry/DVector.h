@@ -23,6 +23,7 @@ using DVector2u = DVector<uint32_t, 2>;
 using DVector3u = DVector<uint32_t, 3>;
 using DVector4u = DVector<uint32_t, 4>;
 
+// DVector data must be aligned by an allocator. Alignment for float, int32_t, uin32_t = 16 bytes | for double = 32 bytes
 template<typename T, uint8_t size>
 class DVector
 {
