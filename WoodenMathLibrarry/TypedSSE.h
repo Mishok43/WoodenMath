@@ -5,37 +5,36 @@
 
 namespace TypedSSE
 {
+
+	
 	template<typename T>
 	struct __m_type
-	{
-		using type = typename void;
-	};
+	{};
 
+	template<>
 	struct __m_type<float>
 	{
 		using type = typename __m128;
 	};
 
+	template<>
 	struct __m_type<double>
 	{
 		using type = typename __m256d;
 	};
 
-
+	template<>
 	struct __m_type<int32_t>
 	{
 		using type = typename __m128i;
 	};
 
-
+	template<>
 	struct __m_type<uint32_t>
 	{
 		using type = typename __m128i;
 	};
 
-
-	template<typename T>
-	using __m_t = __m_type<T>::type;
 
 	// _MM_LOAD_T
 	template<typename T>
@@ -44,6 +43,10 @@ namespace TypedSSE
 		static_assert(false, "The type is not supported");
 		return;
 	}
+
+	template<typename T>
+	using __m_t = typename __m_type<T>::type;
+
 
 	template<>
 	inline auto _mm_load_t<float>(const float* data)
@@ -272,37 +275,76 @@ namespace TypedSSE
 		return _mm_add_epi32(buffer, c);
 	}
 
+	template<typename T, uint8_t controlValue, typename __mT = __m_t<T>>
+	struct _mm_permute_ts
+	{
+		inline auto _mm_permute_t(__mT a)
+		{
+			static_assert(false, "The type is not supported");
+			return;
+		}
+	};
+
+	template<uint8_t controlValue>
+	struct _mm_permute_ts<float, controlValue>
+	{
+		inline auto _mm_permute_t(__m128 a)
+		{
+			return _mm_permute_ps(a, controlValue);
+		}
+
+	};
+
+
+
+	template<uint8_t controlValue>
+	struct _mm_permute_ts<double, controlValue>
+	{
+		inline auto _mm_permute_t(__m256d a)
+		{
+			return _mm256_permute_pd(a, controlValue);
+		}
+
+	};
+
+
+	template<uint8_t controlValue>
+	struct _mm_permute_ts<int32_t, controlValue>
+	{
+		inline auto _mm_permute_t(__m128i a)
+		{
+			return _mm_permute_ps(*((__m128*)(&a)), controlValue);
+		}
+
+	};
+
+	/*
 	// _MM_PERMUT_T
-	template<typename T, typename __mT = __m_t<T>>
-	inline auto _mm_permute_t(__mT a, uint8_t controlValue)
+	template<typename T, uint8_t controlValue, typename __mT = __m_t<T>>
+	inline auto _mm_permute_t(__mT a, std::integral_constant<uint8_t, )
 	{
 		static_assert(false, "The type is not supported");
 		return;
 	}
 
-	template<>
-	inline auto _mm_permute_t<float>(__m128 a, uint8_t controlValue)
+	template<uint8_t controlValue>
+	inline auto _mm_permute_t<controlValue, float>(__m128 a)
 	{
 		return _mm_permute_ps(a, controlValue);
 	}
 
-	template<>
-	inline auto _mm_permute_t<double>(__m256d a, uint8_t controlValue)
+	template<uint8_t controlValue>
+	inline auto _mm_permute_t<controlValue, double>(__m256d a)
 	{
 		return _mm256_permute_pd(a, controlValue);
 	}
 
-	template<>
-	inline auto _mm_permute_t<int32_t>(__m128i a, uint8_t controlValue)
+	template<uint8_t controlValue>
+	inline auto _mm_permute_t<int32_t, controlValue>(__m128i a)
 	{
-		return _mm_permute_ps(*((__m128*)((void*)(&a))), controlValue);
-	}
+		return _mm_permute_ps(*((__m128*)(&a)), controlValue);
+	}*/
 
-	template<>
-	inline auto _mm_permute_t<uint32_t>(__m128i a, uint8_t controlValue)
-	{
-		return _mm_permute_ps(*((__m128*)((void*)(&a))), controlValue);
-	}
 }
 
 

@@ -7,27 +7,11 @@
 
 using namespace TypedSSE;
 
-using DVector2f = DVector<float, 2>;
-using DVector3f = DVector<float, 3>;
-using DVector4f = DVector<float, 4>;
-
-using DVector2d = DVector<double, 2>;
-using DVector3d = DVector<double, 3>;
-using DVector4d = DVector<double, 4>;
-
-using DVector2i = DVector<int32_t, 2>;
-using DVector3i = DVector<int32_t, 3>;
-using DVector4i = DVector<int32_t, 4>;
-
-using DVector2u = DVector<uint32_t, 2>;
-using DVector3u = DVector<uint32_t, 3>;
-using DVector4u = DVector<uint32_t, 4>;
-
 template<typename T, uint8_t size>
 class DVector
 {
 public:
-	DVector(T x, T y, T z, T w):
+	DVector(T x, T y=0, T z=0, T w=0):
 		x(x), y(y), z(z), w(w)
 	{ 
 		constructorAsserts();
@@ -213,12 +197,21 @@ public:
 	{
 		__m_t<T> v1 = _mm_load_t(&v1.x);
 		__m_t<T> v2 = _mm_load_t(&v2.x);
-		v1 = _mm_permute_t(v1, 0b11001001); // Y Z X W
+		/*v1 = _mm_permute_t(v1, 0b11001001); // Y Z X W
 		v2 = _mm_permute_t(v2, 0b11010010); // Z X Y W
 
 		__m_t<T> v3 = _mm_mul_t(v1, v3);
 		v1 = _mm_permute_t(v1, 0b11001001); // Z X Y W
 		v2 = _mm_permute_t(v2, 0b11010010); // Y Z X W
+		*/
+
+		v1 = _mm_permute_ts::f(v1, 0b11001001); // Y Z X W
+		v2 = _mm_permute_ts::f(v2, 0b11010010); // Z X Y W
+
+		__m_t<T> v3 = _mm_mul_t(v1, v3);
+		v1 = _mm_permute_ts::f(v1, 0b11001001); // Z X Y W
+		v2 = _mm_permute_ts::f(v2, 0b11010010); // Y Z X W
+
 		__m_t<T> v4 = _mm_mul_t(v1, v2);
 		__m_t<T> vres = _mm_sub_t(v3, v4);
 		return DVector(vres);
@@ -273,3 +266,20 @@ public:
 		}
 	}*/
 };
+
+
+using DVector2f = DVector<float, 2>;
+using DVector3f = DVector<float, 3>;
+using DVector4f = DVector<float, 4>;
+
+using DVector2d = DVector<double, 2>;
+using DVector3d = DVector<double, 3>;
+using DVector4d = DVector<double, 4>;
+
+using DVector2i = DVector<int32_t, 2>;
+using DVector3i = DVector<int32_t, 3>;
+using DVector4i = DVector<int32_t, 4>;
+
+using DVector2u = DVector<uint32_t, 2>;
+using DVector3u = DVector<uint32_t, 3>;
+using DVector4u = DVector<uint32_t, 4>;
