@@ -213,7 +213,7 @@ namespace TypedSSE
 	inline auto _mm_mul_t(__mT a, __mT b)
 	{
 		static_assert(false, "The type is not supported");
-		return;
+		return ;
 	}
 
 	template<>
@@ -238,6 +238,27 @@ namespace TypedSSE
 	inline auto _mm_mul_t<double>(__m256d a, __m256d b)
 	{
 		return _mm256_mul_pd(a, b);
+	}
+
+	// _MM_DIV_T
+
+	template<typename T, typename __mT = __m_t<T>>
+	inline auto _mm_div_t(__mT a, __mT b)
+	{
+		static_assert(false, "The type is not supported");
+		return;
+	}
+
+	template<>
+	inline auto _mm_div_t<float>(__m128 a, __m128 b)
+	{
+		return _mm_div_ps(a, b);
+	}
+
+	template<>
+	inline auto _mm_div_t<double>(__m256d a, __m256d b)
+	{
+		return _mm256_div_pd(a, b);
 	}
 
 	// _MM_MADD_T
@@ -275,10 +296,10 @@ namespace TypedSSE
 		return _mm_add_epi32(buffer, c);
 	}
 
-	template<typename T, uint8_t controlValue, typename __mT = __m_t<T>>
+	template<uint8_t controlValue, typename T, typename __mT = __m_t<T>>
 	struct _mm_permute_ts
 	{
-		inline auto _mm_permute_t(__mT a)
+		static inline auto f(__mT a)
 		{
 			static_assert(false, "The type is not supported");
 			return;
@@ -286,9 +307,9 @@ namespace TypedSSE
 	};
 
 	template<uint8_t controlValue>
-	struct _mm_permute_ts<float, controlValue>
+	struct _mm_permute_ts<controlValue, float>
 	{
-		inline auto _mm_permute_t(__m128 a)
+		static inline auto f(__m128 a)
 		{
 			return _mm_permute_ps(a, controlValue);
 		}
@@ -296,11 +317,10 @@ namespace TypedSSE
 	};
 
 
-
 	template<uint8_t controlValue>
-	struct _mm_permute_ts<double, controlValue>
+	struct _mm_permute_ts<controlValue, double>
 	{
-		inline auto _mm_permute_t(__m256d a)
+		static inline auto f(__m256d a)
 		{
 			return _mm256_permute_pd(a, controlValue);
 		}
@@ -309,9 +329,9 @@ namespace TypedSSE
 
 
 	template<uint8_t controlValue>
-	struct _mm_permute_ts<int32_t, controlValue>
+	struct _mm_permute_ts<controlValue, int32_t>
 	{
-		inline auto _mm_permute_t(__m128i a)
+		static inline auto f(__m128i a)
 		{
 			return _mm_permute_ps(*((__m128*)(&a)), controlValue);
 		}

@@ -1,14 +1,15 @@
 #pragma once
-#include <cmath>
-#include <math.h>
+#include "stdafx.h"
 #include "TypedSSE.h"
+
+WML_BEGIN
 
 // TODO: fork some methods for different sizes 
 
 using namespace TypedSSE;
 
 template<typename T, uint8_t size>
-class DVector
+class alignas(16) DVector 
 {
 public:
 	DVector(T x, T y=0, T z=0, T w=0):
@@ -83,7 +84,7 @@ public:
 		return *this;
 	}
 
-	DVector operator*(float s) const
+	DVector operator*(T s) const
 	{
 		__m_t<T> v0 = _mm_load_t(&x);
 		__m_t<T> v1 = _mm_set1_t(s);
@@ -91,6 +92,15 @@ public:
 
 		return DVector<T, size>(vres);
 	}
+
+	DVector operator*(DVector v) const
+	{
+		__m_t<T> v0 = _mm_load_t(&x);
+		__m_t<T> v1 = _mm_load_t(&v.x);
+		__m_t<T> vres = _mm_mul_t<T>(v0, v1);
+		return DVector<T, size>(vres);
+	}
+
 
 	DVector& operator*=(T s)
 	{
@@ -103,6 +113,18 @@ public:
 
 		return *this;
 	}
+
+	DVector& operator*=(DVector v)
+	{
+		__m_t<T> v0 = _mm_load_t(&x);
+		__m_t<T> v1 = _mm_load_t(&v.x);
+		__m_t<T> vres = _mm_mul_t<T>(v0, v1);
+
+		_mm_store_t(&x, vres);
+
+		return *this;
+	}
+
 
 	DVector operator/(T s) const
 	{
@@ -134,7 +156,41 @@ public:
 		__m_t<T> vres = _mm_mul_t<T>(v0, v1);
 
 		_mm_store_t(&x, vres);
+		return *this;
+
 	}
+
+	DVector operator/(DVector v2) const
+	{
+		static_assert(!std::is_same<int32_t, T>() &&
+					  !std::is_same<uint32_t, T>(), "Division of int types is not supported");
+
+		//assert(v2.x != 0);
+
+		__m_t<T> v0 = _mm_load_t(&x);
+		__m_t<T> v1 = _mm_load_t(&v2.x);
+
+		__m_t<T> vres = _mm_div_t<T>(v0, v1);
+
+
+		return DVector<T, size>(vres);
+	}
+
+	DVector& operator/=(DVector v2)
+	{
+		static_assert(!std::is_same<int32_t, T>() &&
+					  !std::is_same<uint32_t, T>(), "Division of int types is not supported");
+
+		//assert(s != 0);
+		__m_t<T> v0 = _mm_load_t(&x);
+		__m_t<T> v1 = _mm_load_t(&v2.x);
+
+		__m_t<T> vres = _mm_div_t<T>(v0, v1);
+
+		_mm_store_t(&x, vres);
+		return *this;
+	}
+
 
 	DVector operator-() const
 	{
@@ -153,28 +209,28 @@ public:
 		return (&x)[i];
 	}
 
-	bool HasOnlyNaNs() const
+	bool hasOnlyNaNs() const
 	{
 		return std::isnan(x) && std::isnan(y) && std::isnan(z) && std::isnan(w);
 	}
 
-	float Length2() const
+	T length2() const
 	{
-		return Dot(*this, *this);
+		return dot(*this, *this);
 	}
 
-	float Length() const
+	T length() const
 	{
-		return std::sqrt(Dot(*this, *this));
+		return std::sqrt(dot(*this, *this));
 	}
 
 public:
-	static inline DVector Abs(const DVector& v)
+	static inline DVector abs(const DVector& v)
 	{
 		return DVector(std::abs(v.x), std::abs(v.y), std::abs(v.z), std::abs(v.w));
 	}
 
-	static inline T Dot(const DVector& v1, const DVector& v2)
+	static inline T dot(const DVector& v1, const DVector& v2)
 	{
 		__m_t<T> v1data = _mm_load_t(&v1.x);
 		__m_t<T> v2data = _mm_load_t(&v2.x);
@@ -185,63 +241,49 @@ public:
 		{
 			res += ((T*)(&vres))[i];
 		}
+		return res;
 	}
 
-	static inline T AbsDot(const DVector& v1, const DVector& v2)
+	static inline T absDot(const DVector& v1, const DVector& v2)
 	{
-		return std::abs(Dot(v1, v2));
+		return std::abs(dot(v1, v2));
 	}
 
 	template<typename sizeCheck = std::enable_if_t<size == 3>>
-	static inline DVector Cross(const DVector& v1, const DVector& v2)
+	static inline DVector cross(const DVector& v1, const DVector& v2)
 	{
-		__m_t<T> v1 = _mm_load_t(&v1.x);
-		__m_t<T> v2 = _mm_load_t(&v2.x);
-		/*v1 = _mm_permute_t(v1, 0b11001001); // Y Z X W
-		v2 = _mm_permute_t(v2, 0b11010010); // Z X Y W
+		__m_t<T> v1data = _mm_load_t(&v1.x);
+		__m_t<T> v2data = _mm_load_t(&v2.x);
 
-		__m_t<T> v3 = _mm_mul_t(v1, v3);
-		v1 = _mm_permute_t(v1, 0b11001001); // Z X Y W
-		v2 = _mm_permute_t(v2, 0b11010010); // Y Z X W
-		*/
+		v1data = _mm_permute_ts<0b11001001, T>::f(v1data); // Y Z X W
+		v2data  = _mm_permute_ts<0b11010010, T>::f(v2data); // Z X Y W
 
-		v1 = _mm_permute_ts::f(v1, 0b11001001); // Y Z X W
-		v2 = _mm_permute_ts::f(v2, 0b11010010); // Z X Y W
+		__m_t<T> v3data = _mm_mul_t<T>(v1data, v2data);
+		v1data = _mm_permute_ts<0b11001001, T>::f(v1data); // Z X Y W
+		v2data = _mm_permute_ts<0b11010010, T>::f(v2data); // Y Z X W
 
-		__m_t<T> v3 = _mm_mul_t(v1, v3);
-		v1 = _mm_permute_ts::f(v1, 0b11001001); // Z X Y W
-		v2 = _mm_permute_ts::f(v2, 0b11010010); // Y Z X W
-
-		__m_t<T> v4 = _mm_mul_t(v1, v2);
-		__m_t<T> vres = _mm_sub_t(v3, v4);
+		__m_t<T> v4data = _mm_mul_t<T>(v1data, v2data);
+		__m_t<T> vres = _mm_sub_t<T>(v3data, v4data);
 		return DVector(vres);
-
-		/*
-		double v1x = v1.x, v1y = v1.y, v1z = v1.z;
-		double v2x = v2.x, v2y = v2.y, v2z = v2.z;
-		return DVector(
-			(v1y*v2z) - (v1z*v2y),
-			(v1z*v2x) - (v1x*v2z),
-			(v1x*v2y) - (v1y*v2x));*/
 	}
 
 
-	static inline DVector Normalize(const DVector& v)
+	static inline DVector normalize(const DVector& v)
 	{
-		return v / v.Length();
+		return v / v.length();
 	}
 
-	static inline T MinComponent(const DVector& v)
+	static inline T minComponent(const DVector& v)
 	{
 		return std::min<T>(v.x, std::min<T>(v.y, v.z));
 	}
 
-	static inline T MaxComponent(const DVector& v)
+	static inline T maxComponent(const DVector& v)
 	{
 		return std::max<T>(v.x, std::max<T>(v.y, v.z));
 	}
 
-	static inline DVector Min(const DVector& v1, const DVector& v2)
+	static inline DVector minVector(const DVector& v1, const DVector& v2)
 	{
 
 		return DVector<T, size>(std::min<T>(v1.x, v2.x),
@@ -250,7 +292,7 @@ public:
 						   std::min<T>(v1.w, v2.w));
 	}
 
-	static inline DVector Max(const DVector& v1, const DVector& v2)
+	static inline DVector maxVector(const DVector& v1, const DVector& v2)
 	{
 		return DVector<T, size>(std::max<T>(v1.x, v2.x),
 						   std::max<T>(v1.y, v2.y),
@@ -258,13 +300,20 @@ public:
 						std::max<T>(v1.w, v2.w));
 	}
 
-	/*static inline void MakeBasisByVector(const DVector& v1, DVector* v2, DVector* v3)
+	static inline void makeBasisByVector(const DVector& v1, DVector& v2, DVector& v3)
 	{
 		if (std::abs(v1.x) > std::abs(v1.y))
 		{
-			*v2 = DVector(-v1.z, 0, v1.x)
+			v2 = DVector(-v1.z, 0, v1.x);
 		}
-	}*/
+		else
+		{
+			v2 = DVector(0, v1.z, -v1.y);
+		}
+
+		v2 = v2.normalize(v2);;
+		v3 = cross(v1, v2);
+	}
 };
 
 
@@ -283,3 +332,5 @@ using DVector4i = DVector<int32_t, 4>;
 using DVector2u = DVector<uint32_t, 2>;
 using DVector3u = DVector<uint32_t, 3>;
 using DVector4u = DVector<uint32_t, 4>;
+
+WML_END
