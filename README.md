@@ -14,5 +14,5 @@ It supports SSE SIMD operations - SSE, AVX-2. C++17 with meta-programming. Using
 5. Cache-friendly big matrix multiplication
 
 
-<b>Auto-testing<b>:
+<b>Auto-testing</b>:
 1. DVector
