@@ -113,6 +113,16 @@ namespace
 		ASSERT_FLOAT_EQ(v1.length(), sqrt(21.0f));
 	}
 
+	TEST(VectorF, Lerp)
+	{
+		DVector3f v1(2.0f, 1.0f, 4.0f);
+		DVector3f v2(4.0f, 2.0f, 6.0f);
+		float t = 0.4f;
+		float tInv = 1.0f - t;
+
+		ASSERT_VFLOAT3_EQ(DVector3f::lerp(v1, v2, t), tInv*v1.x + t * v2.x, tInv*v1.y + t * v2.y, tInv*v1.z + t * v2.z);
+	}
+
 
 	TEST(VectorF, Dot)
 	{

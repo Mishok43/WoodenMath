@@ -224,6 +224,16 @@ public:
 		return std::sqrt(dot(*this, *this));
 	}
 
+
+	const T* data() const
+	{
+		return &x;
+	}
+
+	T* data()
+	{
+		return &x;
+	}
 public:
 	static inline DVector abs(const DVector& v)
 	{
@@ -267,6 +277,29 @@ public:
 		return DVector(vres);
 	}
 
+	static inline DVector lerp(const DVector& v1, const DVector& v2, float t)
+	{
+		float tInv = 1.0 - t;
+		return mAdd(v1, tInv, v2 * t);
+	}
+
+	static inline DVector mAdd(const DVector& v1, float s, const DVector& v2)
+	{
+		__m_t<T> v1data = _mm_load_t(&v1.x);
+		__m_t<T> v1sdata = _mm_set1_t(s);
+		__m_t<T> v2data = _mm_load_t(&v2.x);
+		__m_t<T> vres = _mm_madd_t<T>(v1data, v1sdata, v2data);
+		return DVector(vres);
+	}
+
+	static inline DVector mAdd(const DVector& v1, const DVector& v2, const DVector& v3)
+	{
+		__m_t<T> v1data = _mm_load_t(&v1.x);
+		__m_t<T> v2data = _mm_load_t(&v2.x);
+		__m_t<T> v3data = _mm_load_t(&v3.x);
+		__m_t<T> vres = _mm_madd_t<T>(v1data, v2data, v3data);
+		return DVector(vres);
+	}
 
 	static inline DVector normalize(const DVector& v)
 	{

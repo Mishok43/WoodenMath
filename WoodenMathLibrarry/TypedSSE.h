@@ -72,6 +72,8 @@ namespace TypedSSE
 	{
 		return _mm256_load_pd(data);
 	}
+	
+	
 
 
 	// _MM_SET1_T
