@@ -36,9 +36,9 @@ namespace TypedSSE
 	};
 
 
-	// _MM_LOAD_T
+	// _MM_LOADA_T
 	template<typename T>
-	inline auto _mm_load_t(const T* data)
+	inline auto _mm_loada_t(const T* data)
 	{
 		static_assert(false, "The type is not supported");
 		return;
@@ -49,28 +49,61 @@ namespace TypedSSE
 
 
 	template<>
-	inline auto _mm_load_t<float>(const float* data)
+	inline auto _mm_loada_t<float>(const float* data)
 	{
 		return _mm_load_ps(data);
 	}
 
 	template<>
-	inline auto _mm_load_t<int32_t>(const int32_t* data)
+	inline auto _mm_loada_t<int32_t>(const int32_t* data)
 	{
 		return _mm_load_si128((__m128i*)data);
 	}
 
 	template<>
-	inline auto _mm_load_t<uint32_t>(const uint32_t* data)
+	inline auto _mm_loada_t<uint32_t>(const uint32_t* data)
 	{
 		return _mm_load_si128((__m128i*)data);
 	}
 
 
 	template<>
-	inline auto _mm_load_t<double>(const double* data)
+	inline auto _mm_loada_t<double>(const double* data)
 	{
 		return _mm256_load_pd(data);
+	}
+
+	// _MM_LOADU_T
+	template<typename T>
+	inline auto _mm_loadu_t(const T* data)
+	{
+		static_assert(false, "The type is not supported");
+		return;
+	}
+
+	template<>
+	inline auto _mm_loadu_t<float>(const float* data)
+	{
+		return _mm_loadu_ps(data);
+	}
+
+	template<>
+	inline auto _mm_loadu_t<int32_t>(const int32_t* data)
+	{
+		return _mm_loadu_si128((__m128i*)data);
+	}
+
+	template<>
+	inline auto _mm_loadu_t<uint32_t>(const uint32_t* data)
+	{
+		return _mm_loadu_si128((__m128i*)data);
+	}
+
+
+	template<>
+	inline auto _mm_loadu_t<double>(const double* data)
+	{
+		return _mm256_loadu_pd(data);
 	}
 	
 	
@@ -108,36 +141,99 @@ namespace TypedSSE
 		return _mm_set1_epi32(scalar);
 	}
 
+	template<typename T>
+	inline auto _mm_setr_t(T m0, T m1, T m2, T m3)
+	{
+		static_assert(false, "The type is not supported");
+	}
+
+	template<>
+	inline auto _mm_setr_t<float>(float m0, float m1, float m2, float m3)
+	{
+		return _mm_setr_ps(m0, m1, m2, m3);
+	}
+
+	template<>
+	inline auto _mm_setr_t<double>(double m0, double m1, double m2, double m3)
+	{
+		return _mm256_setr_pd(m0, m1, m2, m3);
+	}
+
+	template<>
+	inline auto _mm_setr_t<int32_t>(int32_t m0, int32_t m1, int32_t m2, int32_t m3)
+	{
+		return _mm_setr_epi32(m0, m1, m2, m3);
+	}
+
+	template<>
+	inline auto _mm_setr_t<uint32_t>(uint32_t m0, uint32_t m1, uint32_t m2, uint32_t m3)
+	{
+		return _mm_setr_epi32(m0, m1, m2, m3);
+	}
+
+
 	// _MM_STORE_T
 	template<typename T, typename __mT = __m_t<T>>
-	inline auto _mm_store_t(T* data, __mT vec)
+	inline auto _mm_storea_t(T* data, __mT vec)
 	{
 		static_assert(false, "The type is not supported");
 		return;
 	}
 
 	template<>
-	inline auto _mm_store_t<float>(float* data, __m128 vec)
+	inline auto _mm_storea_t<float>(float* data, __m128 vec)
 	{
 		return _mm_store_ps(data, vec);
 	}
 
 	template<>
-	inline auto _mm_store_t<double>(double* data, __m256d vec)
+	inline auto _mm_storea_t<double>(double* data, __m256d vec)
 	{
 		return _mm256_store_pd(data, vec);
 	}
 
 	template<>
-	inline auto _mm_store_t<int32_t>(int32_t* data, __m128i vc)
+	inline auto _mm_storea_t<int32_t>(int32_t* data, __m128i vc)
 	{
 		return _mm_store_si128((__m128i*)data, vc);
 	}
 
 	template<>
-	inline auto _mm_store_t<uint32_t>(uint32_t* data, __m128i vc)
+	inline auto _mm_storea_t<uint32_t>(uint32_t* data, __m128i vc)
 	{
 		return _mm_store_si128((__m128i*)data, vc);
+	}
+
+	// _MM_STORE_T
+	template<typename T, typename __mT = __m_t<T>>
+	inline auto _mm_storeu_t(T* data, __mT vec)
+	{
+		static_assert(false, "The type is not supported");
+		return;
+	}
+
+	template<>
+	inline auto _mm_storeu_t<float>(float* data, __m128 vec)
+	{
+		return _mm_storeu_ps(data, vec);
+	}
+
+	template<>
+	inline auto _mm_storeu_t<double>(double* data, __m256d vec)
+	{
+		return _mm256_storeu_pd(data, vec);
+	}
+
+	template<>
+	inline auto _mm_storeu_t<int32_t>(int32_t* data, __m128i vc)
+	{
+		return _mm_storeu_si128((__m128i*)data, vc);
+	}
+
+	template<>
+	inline auto _mm_storeu_t<uint32_t>(uint32_t* data, __m128i vc)
+	{
+		return _mm_storeu_si128((__m128i*)data, vc);
 	}
 
 
@@ -174,6 +270,73 @@ namespace TypedSSE
 	{
 		return _mm256_add_pd(a, b);
 	}
+
+	// _MM_MIN_T
+	template<typename T, typename __mT = __m_t<T>>
+	inline auto _mm_min_t(__mT a, __mT b)
+	{
+		static_assert(false, "The type is not supported");
+		return;
+	}
+
+
+	template<>
+	inline auto _mm_min_t<float>(__m128 a, __m128 b)
+	{
+		return _mm_min_ps(a, b);
+	}
+
+	template<>
+	inline auto _mm_min_t<int32_t>(__m128i a, __m128i b)
+	{
+		return _mm_min_epi32(a, b);
+	}
+
+	template<>
+	inline auto _mm_min_t<uint32_t>(__m128i a, __m128i b)
+	{
+		return _mm_min_epu32(a, b);
+	}
+
+	template<>
+	inline auto _mm_min_t<double>(__m256d a, __m256d b)
+	{
+		return _mm256_min_pd(a, b);
+	}
+
+	// _MM_MAX_T
+	template<typename T, typename __mT = __m_t<T>>
+	inline auto _mm_max_t(__mT a, __mT b)
+	{
+		static_assert(false, "The type is not supported");
+		return;
+	}
+
+
+	template<>
+	inline auto _mm_max_t<float>(__m128 a, __m128 b)
+	{
+		return _mm_max_ps(a, b);
+	}
+
+	template<>
+	inline auto _mm_max_t<int32_t>(__m128i a, __m128i b)
+	{
+		return _mm_max_epi32(a, b);
+	}
+
+	template<>
+	inline auto _mm_max_t<uint32_t>(__m128i a, __m128i b)
+	{
+		return _mm_max_epu32(a, b);
+	}
+
+	template<>
+	inline auto _mm_max_t<double>(__m256d a, __m256d b)
+	{
+		return _mm256_max_pd(a, b);
+	}
+
 
 	// _MM_SUB_T
 
@@ -241,6 +404,39 @@ namespace TypedSSE
 	{
 		return _mm256_mul_pd(a, b);
 	}
+
+	// _mm_cmp_eq_t
+	template<typename T, typename __mT = __m_t<T>>
+	inline auto _mm_cmp_eq_t(__mT a, __mT b)
+	{
+		static_assert(false, "The type is not supported");
+		return;
+	}
+
+	template<>
+	inline auto _mm_cmp_eq_t<float>(__m128 a, __m128 b)
+	{
+		return _mm_cmpeq_ps(a, b);
+	}
+
+	template<>
+	inline auto _mm_cmp_eq_t<int32_t>(__m128i a, __m128i b)
+	{
+		return _mm_cmpeq_epi32(a, b);
+	}
+
+	template<>
+	inline auto _mm_cmp_eq_t<uint32_t>(__m128i a, __m128i b)
+	{
+		return _mm_cmpeq_epi32(a, b);
+	}
+
+	template<>
+	inline auto _mm_cmp_eq_t<double>(__m256d a, __m256d b)
+	{
+		return _mm256_cmp_pd(a, b, 0);
+	}
+
 
 	// _MM_DIV_T
 
@@ -340,32 +536,104 @@ namespace TypedSSE
 
 	};
 
-	/*
-	// _MM_PERMUT_T
-	template<typename T, uint8_t controlValue, typename __mT = __m_t<T>>
-	inline auto _mm_permute_t(__mT a, std::integral_constant<uint8_t, )
+	// _MM_INSERT_T insert 1 value in a corresponding position
+
+	//template<uint8_t controlValue, typename T, typename __mT = __m_t<T>>
+	//struct _mm_insert_ts
+	//{
+	//	static inline auto f(__mT a, T value, uint8_t pos)
+	//	{
+	//		static_assert(false, "The type is not supported");
+	//		return;
+	//	}
+	//};
+
+
+	template<typename T, typename __mT = __m_t<T>>
+	inline auto _mm_insert_t(__mT a, T b, uint8_t pos)
 	{
 		static_assert(false, "The type is not supported");
 		return;
 	}
 
-	template<uint8_t controlValue>
-	inline auto _mm_permute_t<controlValue, float>(__m128 a)
+
+
+	template<>
+	inline auto _mm_insert_t<float>(__m128 a, float value, uint8_t pos)
 	{
-		return _mm_permute_ps(a, controlValue);
+			/*__m128 sVector = _mm_set1_ps(value);
+			return _mm_insert_ps(a, sVector, controlValue << 4);*/
+
+		__m128 sVector = _mm_set1_ps(value);
+		switch (pos)
+		{
+			case 0:
+				return _mm_insert_ps(a, sVector, 0 << 4);
+			case 1:
+				return _mm_insert_ps(a, sVector, 1 << 4);
+			case 2:
+				return _mm_insert_ps(a, sVector, 2 << 4);
+			case 3:
+				return _mm_insert_ps(a, sVector, 3 << 4);
+		}
 	}
 
-	template<uint8_t controlValue>
-	inline auto _mm_permute_t<controlValue, double>(__m256d a)
+	template<>
+	inline auto _mm_insert_t<double>(__m256d a, double value, uint8_t pos)
 	{
-		return _mm256_permute_pd(a, controlValue);
+			/*__m256d sVector = _mm256_set1_pd(value);
+			return _mm256_blend_pd(a, sVector, 1 << controlValue);*/
+		__m256d sVector = _mm256_set1_pd(value);
+		switch (pos)
+		{
+			case 0:
+				return _mm256_blend_pd(a, sVector, 1);
+			case 1:
+				return _mm256_blend_pd(a, sVector, 2);
+			case 2:
+				return _mm256_blend_pd(a, sVector, 3);
+			case 3:
+				return _mm256_blend_pd(a, sVector, 4);
+		}
 	}
 
-	template<uint8_t controlValue>
-	inline auto _mm_permute_t<int32_t, controlValue>(__m128i a)
+	template<>
+	inline auto _mm_insert_t<int32_t>(__m128i a, int32_t value, uint8_t pos)
 	{
-		return _mm_permute_ps(*((__m128*)(&a)), controlValue);
-	}*/
+		/*return _mm_insert_epi32(a, value, controlValue);*/
+
+		switch (pos)
+		{
+			case 0:
+				return _mm_insert_epi32(a, value, 0);
+			case 1:
+				return _mm_insert_epi32(a, value, 1);
+			case 2:
+				return _mm_insert_epi32(a, value, 2);
+			case 3:
+				return _mm_insert_epi32(a, value, 3);
+		}
+	}
+
+	template<>
+	inline auto _mm_insert_t<uint32_t>(__m128i a, uint32_t value, uint8_t pos)
+	{
+			/*return _mm_insert_epi32(a, value, 0);*/
+		switch (pos)
+		{
+			case 0:
+				return _mm_insert_epi32(a, value, 0);
+			case 1:
+				return _mm_insert_epi32(a, value, 1);
+			case 2:
+				return _mm_insert_epi32(a, value, 2);
+			case 3:
+				return _mm_insert_epi32(a, value, 3);
+		}
+	}
+
+
+	
 
 }
 

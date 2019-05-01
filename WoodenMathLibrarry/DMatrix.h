@@ -85,7 +85,7 @@ public:
 	{
 		float m33Temp = m33;
 		__m128 v0 = _mm_load_ps(data30());
-		__m128 v1 = _mm_load_ps(trans.data());
+		__m128 v1 = _mm_load_ps(trans.xmm());
 		__m128 v2 = _mm_add_ps(v0, v1);
 		_mm_store_ps(data30(), v2);
 		m33 = m33Temp;
