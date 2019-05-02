@@ -8,16 +8,18 @@ WML_BEGIN
 
 using namespace TypedSSE;
 
-template<typename T, uint8_t Size>
-class DVectorWrapper;
-
 template<typename T, uint8_t Size, typename __mT = __m_t<T>>
 class alignas(16) DVector
 {
 public:
+	DVector(T* data)
+	{
+		xmm = _mm_loadu_t(data);
+	}
+	
 	DVector(T broadcastValue = 0)
 	{
-		xmm = _mm_set1_t<T>(broadcastValue);
+		xmm = _mm_set1_t<T, __mT>(broadcastValue);
 	}
 
 	template<typename check = std::enable_if_t<Size == 4>>
@@ -38,10 +40,9 @@ public:
 		xmm = _mm_setr_t<T>(x, y, 0, 0);
 	}
 
-	DVector(const __m_t<T>& data) :
-		xmm(data)
-	{
-	}
+	DVector( __m_t<T> data) :
+	   xmm(std::move(data))
+	{}
 
 	__mT xmm;
 
@@ -115,23 +116,23 @@ public:
 
 	inline DVector operator+(const DVector& v) const
 	{
-		return _mm_add_t<T>(xmm, v.xmm);
+		return _mm_add_t<T, __mT>(xmm, v.xmm);
 	}
 
 	inline DVector & operator+=(const DVector& v)
 	{
-		xmm = _mm_add_t<T>(xmm, v.xmm);
+		xmm = _mm_add_t<T, __mT>(xmm, v.xmm);
 		return *this;
 	}
 
 	inline DVector operator-(const DVector& v) const
 	{
-		return _mm_sub_t<T>(xmm, v.xmm);
+		return _mm_sub_t<T, __mT>(xmm, v.xmm);
 	}
 
 	inline DVector& operator-=(const DVector& v)
 	{
-		xmm = _mm_sub_t<T>(xmm, v.xmm);
+		xmm = _mm_sub_t<T, __mT>(xmm, v.xmm);
 		return *this;
 	}
 
@@ -150,10 +151,10 @@ public:
 
 	inline DVector operator*(const DVector& v) const
 	{
-		return _mm_mul_t<T>(xmm, v.xmm);
+		return _mm_mul_t<T, __mT>(xmm, v.xmm);
 	}
 
-	inline DVector& operator*=(DVector v)
+	inline DVector& operator*=(const DVector& v)
 	{
 		xmm = (*this)*v;
 		return (*this);
@@ -201,10 +202,6 @@ public:
 		return (*this)*(DVector(-1));
 	}
 
-	DVectorWrapper<T, Size> makeWrapper() const
-	{
-		return DVectorWrapper<T, Size>(*this);
-	}
 
 	inline T operator[](uint32_t i) const
 	{
@@ -220,7 +217,7 @@ public:
 
 	void store(T* mem) const
 	{
-		_mm_storea_t<T>(mem, xmm);
+		_mm_storea_t<T, __mT>(mem, xmm);
 	}
 	
 	void insert(uint8_t pos, T value)
@@ -446,8 +443,5 @@ using DVector4i = DVector<int32_t, 4>;
 using DVector2u = DVector<uint32_t, 2>;
 using DVector3u = DVector<uint32_t, 3>;
 using DVector4u = DVector<uint32_t, 4>;
-
-
-
 
 WML_END

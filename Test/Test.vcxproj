@@ -160,6 +160,7 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClInclude Include="pch.h" />
+    <ClInclude Include="TDMatrix.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="TDVector.h" />

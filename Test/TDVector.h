@@ -5,17 +5,6 @@
 
 using namespace wml;
 
-//#define ASSERT_VFLOAT3_EQ(v1, v2) do{\
-//	ASSERT_FLOAT_EQ(v1.x, v2.x);\
-//	ASSERT_FLOAT_EQ(v1.y, v2.y);\
-//	ASSERT_FLOAT_EQ(v1.z, v2.z);\
-//}while(false);
-
-#define ASSERT_VFLOAT3_EQ(v1, v2x, v2y, v2z) do{\
-	ASSERT_FLOAT_EQ(v1.x(), v2x);\
-	ASSERT_FLOAT_EQ(v1.y(), v2y);\
-	ASSERT_FLOAT_EQ(v1.z(), v2z);\
-}while(false);
 
 namespace
 {
@@ -159,4 +148,6 @@ namespace
 
 		ASSERT_EQ(v1, v2);
 	}
+
+
 }

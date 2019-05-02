@@ -35,6 +35,40 @@ namespace TypedSSE
 		using type = typename __m128i;
 	};
 
+	template<typename T>
+	using __m_t = typename __m_type<T>::type;
+
+	template<typename T>
+	struct __m256_type
+	{};
+
+	template<>
+	struct __m256_type<float>
+	{
+		using type = typename __m256;
+	};
+
+	template<>
+	struct __m256_type<double>
+	{
+		using type = typename __m256d;
+	};
+
+	template<>
+	struct __m256_type<int32_t>
+	{
+		using type = typename __m256i;
+	};
+
+	template<>
+	struct __m256_type<uint32_t>
+	{
+		using type = typename __m256i;
+	};
+
+	template<typename T>
+	using __m256_t = typename __m256_type<T>::type;
+
 
 	// _MM_LOADA_T
 	template<typename T>
@@ -44,8 +78,7 @@ namespace TypedSSE
 		return;
 	}
 
-	template<typename T>
-	using __m_t = typename __m_type<T>::type;
+
 
 
 	template<>
@@ -110,35 +143,41 @@ namespace TypedSSE
 
 
 	// _MM_SET1_T
-	template<typename T>
-	inline auto _mm_set1_t(T data)
+	template<typename T, typename __mT>
+	inline __mT _mm_set1_t(T data)
 	{
 		static_assert(false, "The type is not supported");
 		return;
 	}
 
 	template<>
-	inline auto _mm_set1_t<float>(float scalar)
-	{
-		return _mm_set1_ps(scalar);
-	}
-
-	template<>
-	inline auto _mm_set1_t<double>(double scalar)
+	inline __m256d _mm_set1_t<double, __m256d>(double scalar)
 	{
 		return _mm256_set1_pd(scalar);
 	}
 
 	template<>
-	inline auto _mm_set1_t<int32_t>(int32_t scalar)
+	inline __m128 _mm_set1_t<float, __m128>(float scalar)
 	{
-		return _mm_set1_epi32(scalar);
+		return _mm_set1_ps(scalar);
 	}
 
 	template<>
-	inline auto _mm_set1_t<uint32_t>(uint32_t scalar)
+	inline __m256 _mm_set1_t<float, __m256>(float scalar)
 	{
-		return _mm_set1_epi32(scalar);
+		return _mm256_set1_ps(scalar);
+	}
+
+	template<>
+	inline __m256i _mm_set1_t<int32_t, __m256i>(int32_t scalar)
+	{
+		return _mm256_set1_epi32(scalar);
+	}
+
+	template<>
+	inline __m256i _mm_set1_t<uint32_t, __m256i>(uint32_t scalar)
+	{
+		return _mm256_set1_epi32(scalar);
 	}
 
 	template<typename T>
@@ -172,8 +211,38 @@ namespace TypedSSE
 	}
 
 
+	template<typename T>
+	inline auto _mm_setr_t(T m0, T m1, T m2, T m3, 
+						   T m4, T m5, T m6, T m7)
+	{
+		static_assert(false, "The type is not supported");
+	}
+
+	template<>
+	inline auto _mm_setr_t<float>(float m0, float m1, float m2, float m3,
+								  float m4, float m5, float m6, float m7)
+	{
+		return _mm256_setr_ps(m0, m1, m2, m3, m4, m5, m6, m7);
+	}
+
+	template<>
+	inline auto _mm_setr_t<int32_t>(int32_t m0, int32_t m1, int32_t m2, int32_t m3,
+									int32_t m4, int32_t m5, int32_t m6, int32_t m7)
+	{
+		return _mm256_setr_epi32(m0, m1, m2, m3, m4, m5, m6, m7);
+	}
+
+	template<>
+	inline auto _mm_setr_t<uint32_t>(uint32_t m0, uint32_t m1, uint32_t m2, uint32_t m3,
+									 uint32_t m4, uint32_t m5, uint32_t m6, uint32_t m7)
+	{
+		return _mm256_setr_epi32(m0, m1, m2, m3, m4, m5, m6, m7);
+	}
+
+
+
 	// _MM_STORE_T
-	template<typename T, typename __mT = __m_t<T>>
+	template<typename T, typename __mT>
 	inline auto _mm_storea_t(T* data, __mT vec)
 	{
 		static_assert(false, "The type is not supported");
@@ -181,28 +250,80 @@ namespace TypedSSE
 	}
 
 	template<>
-	inline auto _mm_storea_t<float>(float* data, __m128 vec)
+	inline auto _mm_storea_t<float, __m128>(float* data, __m128 vec)
 	{
 		return _mm_store_ps(data, vec);
 	}
 
 	template<>
-	inline auto _mm_storea_t<double>(double* data, __m256d vec)
+	inline auto _mm_storea_t<float, __m256>(float* data, __m256 vec)
+	{
+		return _mm256_store_ps(data, vec);
+	}
+
+	template<>
+	inline auto _mm_storea_t<double, __m256d>(double* data, __m256d vec)
 	{
 		return _mm256_store_pd(data, vec);
 	}
 
 	template<>
-	inline auto _mm_storea_t<int32_t>(int32_t* data, __m128i vc)
+	inline auto _mm_storea_t<int32_t, __m128i>(int32_t* data, __m128i vc)
 	{
 		return _mm_store_si128((__m128i*)data, vc);
 	}
 
 	template<>
-	inline auto _mm_storea_t<uint32_t>(uint32_t* data, __m128i vc)
+	inline auto _mm_storea_t<int32_t, __m256i>(int32_t* data, __m256i vc)
+	{
+		return _mm256_store_si256((__m256i*)data, vc);
+	}
+
+	template<>
+	inline auto _mm_storea_t<uint32_t, __m128i>(uint32_t* data, __m128i vc)
 	{
 		return _mm_store_si128((__m128i*)data, vc);
 	}
+
+	template<>
+	inline auto _mm_storea_t<uint32_t, __m256i>(uint32_t* data, __m256i vc)
+	{
+		return _mm256_store_si256((__m256i*)data, vc);
+	}
+
+	template<typename T>
+	inline auto _mm256_broadcast_t(T* data)
+	{
+		static_assert(false, "The type is not supported");
+		return;
+	}
+
+	template<>
+	inline auto _mm256_broadcast_t<float>(float* data)
+	{
+		return _mm256_broadcast_ps((__m128 const*)data);
+	}
+
+	template<>
+	inline auto _mm256_broadcast_t<double>(double* data)
+	{ 
+		return _mm256_loadu_pd(data);
+	}
+
+	template<>
+	inline auto _mm256_broadcast_t<int32_t>(int32_t* data)
+	{
+		__m128i xmm = _mm_loadu_si128((__m128i*)data);
+		return _mm256_broadcastsi128_si256(xmm);
+	}
+
+	template<>
+	inline auto _mm256_broadcast_t<uint32_t>(uint32_t* data)
+	{
+		__m128i xmm = _mm_loadu_si128((__m128i*)data);
+		return _mm256_broadcastsi128_si256(xmm);
+	}
+
 
 	// _MM_STORE_T
 	template<typename T, typename __mT = __m_t<T>>
@@ -239,34 +360,51 @@ namespace TypedSSE
 
 
 	// _MM_ADD_T
-	template<typename T, typename __mT = __m_t<T>>
+	template<typename T, typename __mT>
 	inline auto _mm_add_t(__mT a, __mT b)
 	{
 		static_assert(false, "The type is not supported");
 		return;
 	}
 
-
 	template<>
-	inline auto _mm_add_t<float>(__m128 a, __m128 b)
+	inline auto _mm_add_t<float, __m128>(__m128 a, __m128 b)
 	{
 		return _mm_add_ps(a, b);
 	}
 
 	template<>
-	inline auto _mm_add_t<int32_t>(__m128i a, __m128i b)
+	inline auto _mm_add_t<float, __m256>(__m256 a, __m256 b)
+	{
+		return _mm256_add_ps(a, b);
+	}
+
+	template<>
+	inline auto _mm_add_t<int32_t, __m128i>(__m128i a, __m128i b)
 	{
 		return _mm_add_epi32(a, b);
 	}
 
 	template<>
-	inline auto _mm_add_t<uint32_t>(__m128i a, __m128i b)
+	inline auto _mm_add_t<int32_t, __m256i>(__m256i a, __m256i b)
+	{
+		return _mm256_add_epi32(a, b);
+	}
+
+	template<>
+	inline auto _mm_add_t<uint32_t, __m128i>(__m128i a, __m128i b)
 	{
 		return _mm_add_epi32(a, b);
 	}
 
 	template<>
-	inline auto _mm_add_t<double>(__m256d a, __m256d b)
+	inline auto _mm_add_t<uint32_t, __m256i>(__m256i a, __m256i b)
+	{
+		return _mm256_add_epi32(a, b);
+	}
+
+	template<>
+	inline auto _mm_add_t<double, __m256d>(__m256d a, __m256d b)
 	{
 		return _mm256_add_pd(a, b);
 	}
@@ -340,30 +478,47 @@ namespace TypedSSE
 
 	// _MM_SUB_T
 
-	template<typename T, typename __mT = __m_t<T>>
+	template<typename T, typename __mT>
 	inline auto _mm_sub_t(__mT a, __mT b)
 	{
 		static_assert(false, "The type is not supported");
 		return;
 	}
 
-
 	template<>
-	inline auto _mm_sub_t<float>(__m128 a, __m128 b)
+	inline auto _mm_sub_t<float, __m128>(__m128 a, __m128 b)
 	{
 		return _mm_sub_ps(a, b);
 	}
 
 	template<>
-	inline auto _mm_sub_t<int32_t>(__m128i a, __m128i b)
+	inline auto _mm_sub_t<float, __m256>(__m256 a, __m256 b)
+	{
+		return _mm256_sub_ps(a, b);
+	}
+
+	template<>
+	inline auto _mm_sub_t<int32_t, __m128i>(__m128i a, __m128i b)
 	{
 		return _mm_sub_epi32(a, b);
 	}
 
 	template<>
-	inline auto _mm_sub_t<uint32_t>(__m128i a, __m128i b)
+	inline auto _mm_sub_t<int32_t, __m256i>(__m256i a, __m256i b)
+	{
+		return _mm256_sub_epi32(a, b);
+	}
+
+	template<>
+	inline auto _mm_sub_t<uint32_t, __m128i>(__m128i a, __m128i b)
 	{
 		return _mm_sub_epi32(a, b);
+	}
+
+	template<>
+	inline auto _mm_sub_t<uint32_t, __m256i>(__m256i a, __m256i b)
+	{
+		return _mm256_sub_epi32(a, b);
 	}
 
 	template<>
@@ -373,8 +528,7 @@ namespace TypedSSE
 	}
 
 	// _MM_MUL_T
-
-	template<typename T, typename __mT = __m_t<T>>
+	template<typename T, typename __mT>
 	inline auto _mm_mul_t(__mT a, __mT b)
 	{
 		static_assert(false, "The type is not supported");
@@ -382,25 +536,44 @@ namespace TypedSSE
 	}
 
 	template<>
-	inline auto _mm_mul_t<float>(__m128 a, __m128 b)
+	inline auto _mm_mul_t<float, __m128>(__m128 a, __m128 b)
 	{
 		return _mm_mul_ps(a, b);
 	}
 
 	template<>
-	inline auto _mm_mul_t<int32_t>(__m128i a, __m128i b)
+	inline auto _mm_mul_t<int32_t, __m128i>(__m128i a, __m128i b)
 	{
 		return _mm_mul_epi32(a, b);
 	}
 
 	template<>
-	inline auto _mm_mul_t<uint32_t>(__m128i a, __m128i b)
+	inline auto _mm_mul_t<uint32_t, __m128i>(__m128i a, __m128i b)
 	{
 		return _mm_mul_epu32(a, b);
 	}
 
 	template<>
-	inline auto _mm_mul_t<double>(__m256d a, __m256d b)
+	inline auto _mm_mul_t<float, __m256>(__m256 a, __m256 b)
+	{
+		return _mm256_mul_ps(a, b);
+	}
+
+	template<>
+	inline auto _mm_mul_t<int32_t, __m256i>(__m256i a, __m256i b)
+	{
+		return _mm256_mul_epi32(a, b);
+	}
+
+	template<>
+	inline auto _mm_mul_t<uint32_t, __m256i>(__m256i a, __m256i b)
+	{
+		return _mm256_mul_epu32(a, b);
+	}
+
+
+	template<>
+	inline auto _mm_mul_t<double, __m256d>(__m256d a, __m256d b)
 	{
 		return _mm256_mul_pd(a, b);
 	}
@@ -561,8 +734,8 @@ namespace TypedSSE
 	template<>
 	inline auto _mm_insert_t<float>(__m128 a, float value, uint8_t pos)
 	{
-			/*__m128 sVector = _mm_set1_ps(value);
-			return _mm_insert_ps(a, sVector, controlValue << 4);*/
+		/*__m128 sVector = _mm_set1_ps(value);
+		return _mm_insert_ps(a, sVector, controlValue << 4);*/
 
 		__m128 sVector = _mm_set1_ps(value);
 		switch (pos)

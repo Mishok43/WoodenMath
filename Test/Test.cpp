@@ -2,6 +2,8 @@
 //
 
 #include "pch.h"
+#include "TDMatrix.h"
+#include "TDVector.h"
 #include <iostream>
 
 

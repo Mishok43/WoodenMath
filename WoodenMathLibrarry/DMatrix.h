@@ -6,194 +6,349 @@
 WML_BEGIN
 
 using namespace TypedSSE;
+template<typename T>
+struct DMatrixSize
+{};
 
-class alignas(32) DMatrixf
+template<>
+struct DMatrixSize<float>
+{
+	static constexpr uint8_t size = 2;
+};
+
+template<>
+struct DMatrixSize<int32_t>
+{
+	static constexpr uint8_t size = 2;
+};
+
+template<>
+struct DMatrixSize<uint32_t>
+{
+	static constexpr uint8_t size = 2;
+};
+
+template<>
+struct DMatrixSize<double>
+{
+	static constexpr uint8_t size = 4;
+};
+
+template<typename T>
+constexpr uint8_t DMatrixSize_v = DMatrixSize<T>::size;
+
+template<typename T, typename __mT = __m256_t<T>, uint8_t Size=DMatrixSize_v<T>>
+class alignas(32) DMatrix
 {
 public:
-	float m00, m01, m02, m03,
-		m10, m11, m12, m13,
-		m20, m21, m22, m23,
-		m30, m31, m32, m33;
+	// if float/int32_t/uint32_t - every row = Column(i)|Column(i+1)
+	// if double - every row = Column(i)
+	__mT xmm[Size];
 
-	DMatrixf(float m00, float m01, float m02, float m03,
-			 float m10, float m11, float m12, float m13,
-			 float m20, float m21, float m22, float m23,
-			 float m30, float m31, float m32, float m33
-	) :
-		m00(m00), m01(m01), m02(m02), m03(m03),
-		m10(m10), m11(m11), m12(m12), m13(m13),
-		m20(m20), m21(m21), m22(m22), m23(m23),
-		m30(m30), m31(m31), m32(m32), m33(m33)
-	{}
-
-	DMatrixf()
-		: m00(1.0f), m11(1.0f), m22(1.0f), m33(1.0f)
-	{}
-
-	DMatrixf operator+(const DMatrixf& v) const
+	DMatrix(T m00, T m01, T m02, T m03,
+			T m10, T m11, T m12, T m13,
+			T m20, T m21, T m22, T m23,
+			T m30, T m31, T m32, T m33
+	)
 	{
-		DMatrixf res;
-		addition(*this, v, res);
+		loadData(m00, m01, m02, m03,
+				 m10, m11, m12, m13,
+				 m20, m21, m22, m23,
+				 m30, m31, m32, m33);
+	}
+
+	DMatrix()
+	{
+		loadData(1.0f, 0.0f, 0.0f, 0.0f,
+				  0.0f, 1.0f, 0.0f, 0.0f,
+				  0.0f, 0.0f, 1.0f, 0.0f,
+				  0.0f, 0.0f, 0.0f, 1.0);
+	}
+
+	template<typename T2 = T, typename  std::enable_if_t<std::is_same_v<T2, double>, bool> = true>
+	void loadData(T m00, T m01, T m02, T m03,
+				   T m10, T m11, T m12, T m13,
+				   T m20, T m21, T m22, T m23,
+				   T m30, T m31, T m32, T m33)
+	{
+		xmm[0] = _mm_setr_t<T>(m00, m10, m20, m30);
+		xmm[1] = _mm_setr_t<T>(m01, m11, m21, m31);
+		xmm[2] = _mm_setr_t<T>(m02, m12, m22, m32);
+		xmm[3] = _mm_setr_t<T>(m03, m13, m23, m33);
+	}
+
+	template<typename T2 = T, typename std::enable_if_t<!std::is_same_v<T2, double>, bool> = true>
+	void loadData(T m00, T m01, T m02, T m03,
+				  T m10, T m11, T m12, T m13,
+				  T m20, T m21, T m22, T m23,
+				  T m30, T m31, T m32, T m33)
+	{
+		xmm[0] = _mm_setr_t<T>(m00, m10, m20, m30, m01, m11, m21, m31);
+		xmm[1] = _mm_setr_t<T>(m02, m12, m22, m32, m03, m13, m23, m33);
+	}
+
+	inline DMatrix operator+(const DMatrix& v) const
+	{
+		DMatrix res;
+		add(*this, v, res);
 		return res;
 	}
 
-	DMatrixf& operator+=(const DMatrixf& v)
+	inline DMatrix& operator+=(const DMatrix& v)
 	{
-		addition(*this, v, *this);
+		add(*this, v, *this);
 		return *this;
 	}
 
-	DMatrixf operator-(const DMatrixf& v) const
+	inline DMatrix operator-(const DMatrix& v) const
 	{
-		DMatrixf res;
-		substraction(*this, v, res);
+		DMatrix res;
+		sub(*this, v, res);
 		return res;
 	}
 
-	DMatrixf& operator-=(const DMatrixf& v)
+	inline DMatrix& operator-=(const DMatrix& v)
 	{
-		substraction(*this, v, *this);
+		sub(*this, v, *this);
 		return *this;
 	}
 
-	DMatrixf operator*(const DMatrixf& v) const
+	inline DMatrix operator*(const DMatrix& v) const
 	{
-		DMatrixf res;
-		multiplication(*this, v, res);
+		DMatrix res;
+		multMatrix(*this, v, res);
 		return res;
 	}
 
-	DMatrixf& operator*=(const DMatrixf& v)
+	inline DMatrix& operator*=(const DMatrix& v)
 	{
-		DMatrixf res;
-		multiplication(*this, v, res);
+		DMatrix res;
+		multMatrix(*this, v, res);
 		return res;
 	}
 
-	template<typename T>
-	void setTransition(const DVector<T, 3>& trans)
+	inline DMatrix operator*(T s) const
 	{
-		m30 = trans.x; m31 = trans.y; m32 = trans.z;
+		DMatrix res;
+		multScalar(*this, s, res);
+		return res;
 	}
 
-	void setTransition(float x, float y, float z)
+	inline DMatrix& operator*=(T s)
 	{
-		m30 = x; m31 = y; m32 = z;
+		multScalar(*this, s, *this);
+		return (*this);
 	}
 
-	void transition(const DVector<float, 3>& trans)
+	template<typename T2>
+	inline void setTransition(const DVector<T2, 3>& trans)
 	{
-		float m33Temp = m33;
-		__m128 v0 = _mm_load_ps(data30());
-		__m128 v1 = _mm_load_ps(trans.xmm());
-		__m128 v2 = _mm_add_ps(v0, v1);
-		_mm_store_ps(data30(), v2);
-		m33 = m33Temp;
+		setTransition(trans.x(), trans.y(), trans.z());
 	}
 
-	void transition(float x, float y, float z)
+	inline void setTransition(T x, T y, T z)
 	{
-		m30 += x; m31 += y; m32 += z;
+		(*this)[0][3] = x; (*this)[1][3] = y; (*this)[2][3] = z;
 	}
 
-	template<typename T>
-	void setScale(const DVector<T, 3>& scale)
+	template<typename T2>
+	inline void transition(const DVector<T2, 3>& trans)
 	{
-		m00 = scale.x; m11 = scale.y; m22 = scale.z;
+		transition(trans.x(), trans.y(), trans.z());
 	}
 
-	void setScale(float x, float y, float z)
+	inline void transition(float x, float y, float z)
 	{
-		m00 = x; m11 = y; m22 = z;
+		(*this)[0][3] += x; (*this)[1][3] += y; (*this)[2][3] += z;
+	}
+	
+	template<typename T2>
+	inline void setScale(const DVector<T2, 3>& scale)
+	{
+		setScale(scale.x(), scale.y(), scale.z());
 	}
 
-	void setRotationX()
-private:
-	static inline void addition(const DMatrixf& m0, const DMatrixf& m1, DMatrixf& mres) noexcept
+	inline void setScale(float x, float y, float z)
 	{
-		__m256 v0 = _mm256_load_ps(m0.data00());
-		__m256 v1 = _mm256_load_ps(m1.data00());
-		__m256 v3 = _mm256_add_ps(v0, v1);
-		_mm256_store_ps(mres.data00(), v3);
-
-		v0 = _mm256_load_ps(m0.data20());
-		v1 = _mm256_load_ps(m1.data20());
-		v3 = _mm256_add_ps(v0, v1);
-		_mm256_store_ps(mres.data20(), v3);
+		(*this)[0][0] = x; (*this)[1][1] = y; (*this)[3][3] = z;
 	}
 
-	static inline void substraction(const DMatrixf& m0, const DMatrixf& m1, DMatrixf& mres) noexcept
+	inline const T* operator[](uint32_t i) const
 	{
-		__m256 v0 = _mm256_load_ps(m0.data00());
-		__m256 v1 = _mm256_load_ps(m1.data00());
-		__m256 v3 = _mm256_sub_ps(v0, v1);
-		_mm256_store_ps(mres.data00(), v3);
-
-		v0 = _mm256_load_ps(m0.data20());
-		v1 = _mm256_load_ps(m1.data20());
-		v3 = _mm256_sub_ps(v0, v1);
-		_mm256_store_ps(mres.data20(), v3);
+		assert(i < 4);
+		return &((data())[i*4]);
 	}
 
-	static inline void multiplication(const DMatrixf& m0, const DMatrixf& m1,  DMatrixf& mres)
+	inline T* operator[](uint32_t i)
 	{
-		const float* m0Data = m0.data00();
-		const float* m1Data = m1.data00();
-		float* mResData = mres.data00();
+		assert(i < 4);
+		return &((data())[i*4]);
+	}
 
-		for (size_t i = 0; i < 2; ++i)
+	inline T* data() noexcept
+	{
+		return (T*)(&xmm);
+	}
+
+	inline const T* data() const
+	{
+		return (T*)(&xmm);
+	}
+
+	static inline DMatrix transpose(const DMatrix& m) noexcept
+	{
+		DMatrix res = m;
+
+		// pre-store data 
+		for (size_t i = 0; i < Size; ++i)
 		{
-			for (size_t j = 0; j < 4; ++j)
+			_mm_storea_t<T, __mT>((T*)(&res.xmm[i]), res.xmm[i]);
+		}
+
+
+		for (uint8_t i = 0; i < 4; ++i)
+		{
+			for (uint8_t j = i + 1; j < 4; ++j)
 			{
-				__m256 v0 = _mm256_load_ps(m0Data);
-				__m256 v1 = _mm256_load_ps(m1Data);
-				__m256 vres = _mm256_mul_ps(v0, v1);
+				T t = res[i][j];
+				res[i][j] = res[j][i];
+				res[j][i] = t;
+			}
+		}
+		return res;
+	}
+private:
+	template<uint8_t VSize, typename T2=T, typename  std::enable_if_t<std::is_same_v<T2, double>, bool> = true>
+	friend inline DVector<T, VSize> operator*(const DVector<T, VSize>& v1, const DMatrix& m0) noexcept
+	{
+		T resData[4];
 
-				float r0Res = 0.0f;
-				float r1Res = 0.0f;
-				for (size_t k = 0; k < 4; ++k)
+		for (uint8_t i = 0; i < Size; ++i)
+		{
+			DVector<T, VSize> v2 = m0.xmm[i];
+			DVector<T, VSize> vres = v1 * v2;
+			
+			T res = 0;
+			for (uint8_t j = 0; j < VSize; ++j)
+			{
+				res += vres[j];
+			}
+			resData[i] = res;
+		}
+
+		for (uint8_t i = VSize; i < 4; ++i)
+			resData[i] = 0;
+
+		return DVector<T, VSize>(resData);
+	}
+
+
+	template<uint8_t VSize, typename T2 = T, typename  std::enable_if_t<!std::is_same_v<T2, double>, bool> = true>
+	friend inline DVector<T, VSize> operator*(const DVector<T, VSize>& v1, const DMatrix& m0) noexcept
+	{
+		T resData[4];
+
+		__mT xmmV1 = _mm256_broadcast_t<T>((T*)(&(v1.xmm)));
+		for (uint8_t i = 0; i < Size; ++i)
+		{
+			__mT xmmRes = _mm_mul_t<T, __mT>(xmmV1, m0.xmm[i]);
+
+			T res0 = 0;
+			T res1 = 0;
+			for (uint8_t j = 0; j < 4; ++j)
+			{
+				res0 += ((T*)(&xmmRes))[j];
+				res1 += ((T*)(&xmmRes))[j + 4];
+			}
+			resData[i*2] = res0;
+			resData[i*2+1] = res1;
+		}
+
+		for (uint8_t i = VSize; i < 4; ++i)
+			resData[i] = 0;
+
+		return DVector<T, VSize>(resData);
+	}
+
+	
+
+	static inline void add(const DMatrix& m0, const DMatrix& m1, DMatrix& mres) noexcept
+	{
+		for (uint8_t i = 0; i < Size; ++i)
+		{
+			mres.xmm[i] = _mm_add_t<T, __mT>(m0.xmm[i], m1.xmm[i]);
+		}
+	}
+
+	static inline void sub(const DMatrix& m0, const DMatrix& m1, DMatrix& mres) noexcept
+	{
+		for (uint8_t i = 0; i < Size; ++i)
+		{
+			mres.xmm[i] = _mm_sub_t<T, __mT>(m0.xmm[i], m1.xmm[i]);
+		}
+	}
+
+	static inline void multMatrix(const DMatrix& m0, const DMatrix& m1,  DMatrix& mres) noexcept
+	{
+		T rowData[4];
+		// pre-store data 
+		for (size_t i = 0; i < Size; ++i)
+		{
+			_mm_storea_t<T, __mT>((T*)(&m0.xmm[i]), m0.xmm[i]);
+		}
+
+		for (size_t i = 0; i < 4; ++i) // rows in m0
+		{
+			for (size_t j = 0; j < Size; ++j) // columns in m1
+			{
+				rowData[0] = m0[0][i]; 
+				rowData[1] = m0[1][i];
+				rowData[2] = m0[2][i];
+				rowData[3] = m0[3][i];
+
+				__mT rowXmm = _mm256_broadcast_t<T>(rowData);
+				rowXmm  = _mm_mul_t<T, __mT>(rowXmm, m1.xmm[j]);
+
+				if (Size ==  2) // if 2 columns in one register
 				{
-					r0Res += vres.m256_f32[k];
-					r1Res += vres.m256_f32[k + 4];
+					T res0 = 0;
+					T res1 = 0;
+					for (size_t k = 0; k < 4; ++k)
+					{
+						res0 += ((T*)(&rowXmm))[k];
+						res1 += ((T*)(&rowXmm))[k+4];
+					}
+					mres[j * 2][i] = res0;
+					mres[j * 2+1][i] = res1;
 				}
-
-				mResData[i * 8 + j] = r0Res;
-				mResData[i * 8 + j + 4] = r1Res;
+				else
+				{ // Size == 4 if 1 column in one register
+					T res = 0;
+					for (size_t k = 0; k < 4; ++k)
+					{
+						res += ((T*)(&rowXmm))[k];
+					}
+					mres[j][i] = res;
+				}
 			}
 		}
 	}
 
-	inline const float* data00() const
+	static inline void multScalar(const DMatrix& m0, T scalar, DMatrix& mres) noexcept
 	{
-		return &m00;
-	}
+		__mT xmmS = _mm_set1_t<T, __mT>(scalar);
 
-	inline float* data00()
-	{
-		return &m00;
-	}
-
-	inline const float* data20() const
-	{
-		return &m20;
-	}
-
-	inline float* data20()
-	{
-		return &m20;
-	}
-
-	inline const float* data30() const
-	{
-		return &m30;
-	}
-
-	inline float* data30()
-	{
-		return &m30;
+		for (size_t j = 0; j < Size; ++j) // columns in m1
+		{
+			mres.xmm[j] = _mm_mul_t<T, __mT>(xmmS, m0.xmm[j]);
+		}
 	}
 };
 
+using DMatrixf = DMatrix<float>;
+using DMatrixd = DMatrix<double>;
+using DMatrixi = DMatrix<int32_t>;
+using DMatrixu = DMatrix<uint32_t>;
 
 WML_END
 
