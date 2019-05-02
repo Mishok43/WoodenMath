@@ -11,6 +11,6 @@ It supports SSE SIMD operations - SSE, AVX-2. C++17 with meta-programming. Using
 2. Lerping functions (spherical, linear)
 3. Cache-friendly big matrix multiplication
 
-<b>Auto-testing</b>:
+<b>Unit-testing</b>:
 1. DVector
 2. DMatrix
