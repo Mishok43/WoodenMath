@@ -9,7 +9,11 @@
 #ifndef PCH_H
 #define PCH_H
 
+#define _USE_MATH_DEFINES
+
 #include "gtest/gtest.h"
+#include <math.h>
+
 
 //#define ASSERT_VFLOAT3_EQ(v1, v2) do{\
 //	ASSERT_FLOAT_EQ(v1.x, v2.x);\

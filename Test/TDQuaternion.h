@@ -23,6 +23,14 @@ namespace
 		ASSERT_VFLOAT4_EQ(q3, 0.9236508, 0.0f, 0.0f, 0.3832351);
 	}
 
+	TEST(QuaternionF, MultVector)
+	{
+		DQuaternionf q = DQuaternionf(0.0f, 0.0f, 1.0f, M_PI_2);
+		DVector4f v = DVector4f(1.0f, 0.0f, 0.0f, 1.0f);
+		v = v * q;
+		ASSERT_VFLOAT4_EQ(v, 0.0, 1.0f, 0.0f, 1.0);
+	}
+
 	TEST(QuaternionF, RotMatrix)
 	{
 		DQuaternionf q0 = DQuaternionf(1.0f, 0.0f, 0.0f, -3.14 / 4.0);

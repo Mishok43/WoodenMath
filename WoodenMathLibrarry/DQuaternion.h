@@ -57,11 +57,6 @@ public:
 		return (*this);
 	}
 
-	inline DVector<T, 4>& operator*(const DVector<T, 4>& p) const
-	{
-		
-	}
-
 	inline T getRealPart() const
 	{
 		return (*this)[3];
@@ -143,13 +138,23 @@ public:
 	{
 		assert(t >= 0.0 && t <= 1.0);
 		T angle = acos(dot(q0, q1));
-		return (sin((1.0 - t)*angle)*q0 + sin(t*angle)*q1) / sin(angle);
+		return (q0*(T)(sin((1.0 - t)*angle)) + q1*sin(t*angle)) / sin(angle);
+	}
+
+	template<uint8_t VSize>
+	friend inline DVector<T, VSize> operator*(const DVector<T, VSize>& v, const DQuaternion& q) noexcept
+	{
+		DVector<T, VSize> res;
+		mul(q, v, res);
+		res.insert(3, v[3]);
+
+		return res;
 	}
 
 protected:
 	static inline void mul(const DQuaternion& q0, const DQuaternion& q1, DQuaternion& q2)
 	{
-		T w0 = q0.getRealPart();
+		T w0 = q0.getRealPart();	
 		T w1 = q1.getRealPart();
 
 		DVector<T, 4> r = DVector<T, 4>::cross(q0, q1);
@@ -162,6 +167,20 @@ protected:
 		r.insert(3, w);
 
 		q2 = DQuaternion(r);
+	}
+
+	template<uint8_t VSize>
+	static inline void mul(const DQuaternion& u, const DVector<T, VSize>& v, DVector<T, VSize>& res)
+	{
+		T w = u.getRealPart();
+		// 2w(uXv)
+		DVector<T, 4> r3 = DVector<T, 4>::cross(u, v)*(2*w);
+		// 2(u*v)u + 2w(uXv)
+		DVector<T, 4> r2 = DVector<T, 4>::mAdd(u, 2.0f*DVector<T, 4>::dot<3>(u, v), r3);
+
+		DVector<T, 4> u2 = static_cast<DVector<T, 4>>(u)*static_cast<DVector<T, 4>>(u);
+		// (w^2-u*u)v + 2(u*v)u + 2w(uXv)
+		res = DVector<T, 4>::mAdd(v, u2.w()-(u2.x()+u2.y()+u2.z()), r2);
 	}
 };
 
