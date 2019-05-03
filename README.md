@@ -10,6 +10,9 @@ It supports SSE SIMD operations - SSE, AVX-2. C++17 with meta-programming. Using
 
 <b>Not implemented yet</b>:
 1. Cache-friendly big matrix multiplication
+2. Computational algorithms
+3. Structures for computational geometry 
+4. Benchmarks
 
 <b>Unit-testing</b>:
 1. DVector
