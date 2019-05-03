@@ -30,6 +30,9 @@
     <ClInclude Include="DMatrix.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="DQuaternion.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="stdafx.cpp">

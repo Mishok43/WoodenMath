@@ -24,6 +24,13 @@
 	ASSERT_FLOAT_EQ(v1.z(), v2z);\
 }while(false);
 
+#define ASSERT_VFLOAT4_EQ(v1, v2x, v2y, v2z, v2w) do{\
+	ASSERT_FLOAT_EQ(v1.x(), v2x);\
+	ASSERT_FLOAT_EQ(v1.y(), v2y);\
+	ASSERT_FLOAT_EQ(v1.z(), v2z);\
+	ASSERT_FLOAT_EQ(v1.w(), v2w);\
+}while(false);
+
 
 #define ASSERT_MATRIX_EQ(m, m00, m01, m02, m03, m10, m11, m12, m13, m20, m21, m22, m23, m30, m31, m32, m33) do{\
 ASSERT_FLOAT_EQ(m[0][0], m00); ASSERT_FLOAT_EQ(m[0][1], m10); ASSERT_FLOAT_EQ(m[0][2], m20); ASSERT_FLOAT_EQ(m[0][3], m30); \

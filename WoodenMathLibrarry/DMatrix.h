@@ -7,38 +7,38 @@ WML_BEGIN
 
 using namespace TypedSSE;
 template<typename T>
-struct DMatrixSize
+struct dmatrix_size
 {};
 
 template<>
-struct DMatrixSize<float>
+struct dmatrix_size<float>
 {
 	static constexpr uint8_t size = 2;
 };
 
 template<>
-struct DMatrixSize<int32_t>
+struct dmatrix_size<int32_t>
 {
 	static constexpr uint8_t size = 2;
 };
 
 template<>
-struct DMatrixSize<uint32_t>
+struct dmatrix_size<uint32_t>
 {
 	static constexpr uint8_t size = 2;
 };
 
 template<>
-struct DMatrixSize<double>
+struct dmatrix_size<double>
 {
 	static constexpr uint8_t size = 4;
 };
 
 template<typename T>
-constexpr uint8_t DMatrixSize_v = DMatrixSize<T>::size;
+constexpr uint8_t dmatrix_size_v = dmatrix_size<T>::size;
 
-template<typename T, typename __mT = __m256_t<T>, uint8_t Size=DMatrixSize_v<T>>
-class alignas(32) DMatrix
+template<typename T, typename __mT = __m256_t<T>, uint8_t Size=dmatrix_size_v<T>, uint8_t alignment=sse_alignment_size_v<__mT>>
+class alignas(alignment) DMatrix
 {
 public:
 	// if float/int32_t/uint32_t - every row = Column(i)|Column(i+1)

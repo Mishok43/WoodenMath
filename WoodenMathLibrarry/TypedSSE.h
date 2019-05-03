@@ -6,6 +6,45 @@
 namespace TypedSSE
 {
 
+	template<typename T>
+	struct sse_alignment_size
+	{
+	};
+
+	template<>
+	struct sse_alignment_size<__m128>
+	{
+		static constexpr uint8_t size = 16;
+	};
+
+	template<>
+	struct sse_alignment_size<__m128i>
+	{
+		static constexpr uint8_t size = 16;
+	};
+
+
+	template<>
+	struct sse_alignment_size<__m256>
+	{
+		static constexpr uint8_t size = 32;
+	};
+
+	template<>
+	struct sse_alignment_size<__m256i>
+	{
+		static constexpr uint8_t size = 32;
+	};
+
+	template<>
+	struct sse_alignment_size<__m256d>
+	{
+		static constexpr uint8_t size = 32;
+	};
+
+
+	template<typename T>
+	constexpr uint8_t sse_alignment_size_v = sse_alignment_size<T>::size;
 	
 	template<typename T>
 	struct __m_type

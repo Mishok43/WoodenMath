@@ -8,10 +8,12 @@ WML_BEGIN
 
 using namespace TypedSSE;
 
-template<typename T, uint8_t Size, typename __mT = __m_t<T>>
-class alignas(16) DVector
+template<typename T, uint8_t Size, typename __mT = __m_t<T>, uint8_t alignment = sse_alignment_size_v<__mT>>
+class alignas(alignment) DVector
 {
 public:
+	__mT xmm;
+
 	DVector(T* data)
 	{
 		xmm = _mm_loadu_t(data);
@@ -40,11 +42,44 @@ public:
 		xmm = _mm_setr_t<T>(x, y, 0, 0);
 	}
 
-	DVector( __m_t<T> data) :
+
+	DVector(const __m_t<T>& data) :
+		xmm(data)
+	{
+	}
+
+	DVector( __m_t<T>&& data) :
 	   xmm(std::move(data))
 	{}
 
-	__mT xmm;
+
+	template<typename = std::enable_if_t<Size == 3>>
+	explicit DVector(const DVector<T, 4>& v) 
+	{
+		_mm_loada_t<T>(&v.xmm);
+		insert(3, 0);
+	}
+
+	template<typename = std::enable_if_t<Size == 4>>
+	explicit DVector(const DVector<T, 3>& v, T w=0) 
+	{
+		_mm_loada_t<T>(&v.xmm);
+		insert(3, w);
+	}
+
+	template<typename = std::enable_if_t<Size == 3>>
+	explicit DVector(DVector<T, 4>&& v):
+		xmm(std::move(v.xmm))
+	{
+		insert(3, 0);
+	}
+
+	template<typename = std::enable_if_t<Size == 4>>
+	explicit DVector(DVector<T, 3>&& v, T w = 0):
+		xmm(std::move(v.xmm))
+	{
+		insert(3, w);
+	}
 
 	template<typename check = std::enable_if_t<std::is_same_v<__mT, __m128>>>
 	operator __m128() const
@@ -241,19 +276,19 @@ public:
 		return (*this)[0];
 	}
 
-	template<typename check = std::enable_if_t<Size >= 2>>
+	template<typename = std::enable_if_t<Size >= 2>>
 	inline T y() const
 	{
 		return (*this)[1];
 	}
 
-	template<typename check = std::enable_if_t<Size >= 3>>
+	template<typename = std::enable_if_t<Size >= 3>>
 	inline T z() const
 	{
 		return (*this)[2];
 	}
 
-	template<typename check = std::enable_if_t<Size >= 4>>
+	template<typename = std::enable_if_t<Size >= 4>>
 	inline T w() const
 	{
 		return (*this)[3];
@@ -264,19 +299,19 @@ public:
 		return (*this)[0];
 	}
 
-	template<typename check = std::enable_if_t<Size >= 2>>
+	template<typename = std::enable_if_t<Size >= 2>>
 	inline T& y()
 	{
 		return (*this)[1];
 	}
 
-	template<typename check = std::enable_if_t<Size >= 3>>
+	template<typename = std::enable_if_t<Size >= 3>>
 	inline T& z()
 	{
 		return (*this)[2];
 	}
 
-	template<typename check = std::enable_if_t<Size >= 4>>
+	template<typename = std::enable_if_t<Size >= 4>>
 	inline T& w()
 	{
 		return (*this)[3];
@@ -336,24 +371,33 @@ public:
 		}
 		return true;
 	}
+
+	template<uint8_t controlValue>
+	inline DVector permute() const
+	{
+		return _mm_permute_ts<controlValue, T>::f(xmm); 
+	}
 public:
 
+
+	template<uint8_t rSize = Size>
 	static inline DVector abs(const DVector& v)
 	{
 		DVector res;
-		for (uint8_t i = 0; i < Size; ++i)
+		for (uint8_t i = 0; i < rSize; ++i)
 		{
 			res[i] = std::abs(v[i]);
 		}
 		return res;
 	}
 
+	template<uint8_t rSize = Size>
 	static inline T dot(const DVector& v1, const DVector& v2)
 	{
 		DVector res = v1*v2;
 
 		T resDot = 0;
-		for (uint8_t i = 0; i < Size; ++i)
+		for (uint8_t i = 0; i < rSize; ++i)
 		{
 			resDot += res[i];
 		}
@@ -365,7 +409,7 @@ public:
 		return std::abs(dot(v1, v2));
 	}
 
-	template<typename sizeCheck = std::enable_if_t<Size == 3>>
+	template<typename sizeCheck = std::enable_if_t<Size >= 2>>
 	static inline DVector cross(const DVector& v1, const DVector& v2)
 	{
 		DVector<T, Size> v1p = _mm_permute_ts<0b11001001, T>::f(v1.xmm); // Y Z X W
@@ -425,6 +469,8 @@ public:
 		v2 = v2.normalize(v2);;
 		v3 = cross(v1, v2);
 	}
+
+protected:
 };
 
 

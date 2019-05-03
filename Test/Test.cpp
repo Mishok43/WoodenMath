@@ -4,6 +4,7 @@
 #include "pch.h"
 #include "TDMatrix.h"
 #include "TDVector.h"
+#include "TDQuaternion.h"
 #include <iostream>
 
 

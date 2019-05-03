@@ -161,6 +161,7 @@
   <ItemGroup>
     <ClInclude Include="pch.h" />
     <ClInclude Include="TDMatrix.h" />
+    <ClInclude Include="TDQuaternion.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="TDVector.h" />
