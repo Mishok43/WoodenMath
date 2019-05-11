@@ -270,7 +270,11 @@ private:
 		return DVector<T, VSize>(resData);
 	}
 
-	
+	template<typename T, typename = std::enable_if_t<VSize == 3>>
+	static inline DVector<T, 3> faceforward(const DVector<T, 3> &goalV, const DVector<T, 3>& v2)
+	{
+		return if (dot(goalV, v2) < 0) ? -goalV ? goalV;
+	}
 
 	static inline void add(const DMatrix& m0, const DMatrix& m1, DMatrix& mres) noexcept
 	{
@@ -309,7 +313,7 @@ private:
 				__mT rowXmm = _mm256_broadcast_t<T>(rowData);
 				rowXmm  = _mm_mul_t<T, __mT>(rowXmm, m1.xmm[j]);
 
-				if (Size ==  2) // if 2 columns in one register
+				if constexpr(Size ==  2) // if 2 columns in one register
 				{
 					T res0 = 0;
 					T res1 = 0;
@@ -321,7 +325,8 @@ private:
 					mres[j * 2][i] = res0;
 					mres[j * 2+1][i] = res1;
 				}
-				else
+				
+				if constexpr(Size == 4)
 				{ // Size == 4 if 1 column in one register
 					T res = 0;
 					for (size_t k = 0; k < 4; ++k)
