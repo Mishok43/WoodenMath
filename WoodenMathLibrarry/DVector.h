@@ -423,6 +423,12 @@ public:
 		return v3-v4;
 	}
 
+	static inline DVector lerp(const DVector& v1, const DVector& v2, const DVector& t)
+	{
+		DVector tInv = DVector(1) - t;
+		return mAdd(v1, tInv, v2 * t);
+	}
+
 	static inline DVector lerp(const DVector& v1, const DVector& v2, float t)
 	{
 		float tInv = 1.0 - t;
