@@ -10,7 +10,7 @@ class alignas(alignment) DQuaternion: public DVector<T, 4>
 {
 public:
 	DQuaternion(DVector<T, 3> u, T angle):
-		DVector<T, 4>(u*sin(angle*0.5), cos(angle*0.5))
+		DVector<T, 4>(std::move(u*sin(angle*0.5)), cos(angle*0.5))
 	{}
 
 	DQuaternion() : 

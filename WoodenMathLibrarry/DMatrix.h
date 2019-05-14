@@ -194,6 +194,27 @@ public:
 	{
 		return (T*)(&xmm);
 	}
+	
+	inline void transpose() noexcept
+	{
+		// pre-store data 
+		for (size_t i = 0; i < Size; ++i)
+		{
+			_mm_storea_t<T, __mT>((T*)(&xmm[i]), xmm[i]);
+		}
+		
+
+		for (uint8_t i = 0; i < 4; ++i)
+		{
+			for (uint8_t j = i + 1; j < 4; ++j)
+			{
+				T t = (*this)[i][j];
+				(*this)[i][j] = (*this)[j][i];
+				(*this)[j][i] = t;
+			}
+		}
+	}
+
 
 	static inline DMatrix transpose(const DMatrix& m) noexcept
 	{
@@ -218,33 +239,54 @@ public:
 		return res;
 	}
 private:
-	template<uint8_t VSize, typename T2=T, typename  std::enable_if_t<std::is_same_v<T2, double>, bool> = true>
-	friend inline DVector<T, VSize> operator*(const DVector<T, VSize>& v1, const DMatrix& m0) noexcept
+	template<typename T2=T, typename  std::enable_if_t<std::is_same_v<T2, double>, bool> = true>
+	friend inline DVector<T, 4> operator*(const DVector<T, 4>& v1, const DMatrix& m0) noexcept
 	{
 		T resData[4];
 
 		for (uint8_t i = 0; i < Size; ++i)
 		{
-			DVector<T, VSize> v2 = m0.xmm[i];
-			DVector<T, VSize> vres = v1 * v2;
+			DVector<T, 4> v2 = m0.xmm[i];
+			DVector<T, 4> vres = v1 * v2;
 			
 			T res = 0;
-			for (uint8_t j = 0; j < VSize; ++j)
+			for (uint8_t j = 0; j < 4; ++j)
 			{
 				res += vres[j];
 			}
 			resData[i] = res;
 		}
 
-		for (uint8_t i = VSize; i < 4; ++i)
-			resData[i] = 0;
 
-		return DVector<T, VSize>(resData);
+		return DVector<T, 4>(resData);
+	}
+
+	template<typename T2 = T, typename  std::enable_if_t<std::is_same_v<T2, double>, bool> = true>
+	friend inline DVector<T, 3> operator*(const DVector<T, 3>& v1, const DMatrix& m0) noexcept
+	{
+		T resData[4];
+
+		for (uint8_t i = 0; i < 3; ++i)
+		{
+			DVector<T, 3> v2 = m0.xmm[i];
+			DVector<T, 3> vres = v1 * v2;
+
+			T res = 0;
+			for (uint8_t j = 0; j < 3; ++j)
+			{
+				res += vres[j];
+			}
+			resData[i] = res;
+		}
+
+		resData[3] = 0;
+
+		return DVector<T, 3>(resData);
 	}
 
 
-	template<uint8_t VSize, typename T2 = T, typename  std::enable_if_t<!std::is_same_v<T2, double>, bool> = true>
-	friend inline DVector<T, VSize> operator*(const DVector<T, VSize>& v1, const DMatrix& m0) noexcept
+	template<typename T2 = T, typename  std::enable_if_t<!std::is_same_v<T2, double>, bool> = true>
+	friend inline DVector<T, 4> operator*(const DVector<T, 4>& v1, const DMatrix& m0) noexcept
 	{
 		T resData[4];
 
@@ -264,16 +306,37 @@ private:
 			resData[i*2+1] = res1;
 		}
 
-		for (uint8_t i = VSize; i < 4; ++i)
-			resData[i] = 0;
-
-		return DVector<T, VSize>(resData);
+		return DVector<T, 4>(resData);
 	}
+
+	template<typename T2 = T, typename  std::enable_if_t<!std::is_same_v<T2, double>, bool> = true>
+	friend inline DVector<T, 3> operator*(const DVector<T, 3>& v1, const DMatrix& m0) noexcept
+	{
+		T resData[4];
+
+		__mT xmmV1 = _mm256_broadcast_t<T>((T*)(&(v1.xmm)));
+		for (uint8_t i = 0; i < Size; ++i)
+		{
+			__mT xmmRes = _mm_mul_t<T, __mT>(xmmV1, m0.xmm[i]);
+
+			T res0 = 0;
+			for (uint8_t j = 0; j < 3; ++j)
+			{
+				res0 += ((T*)(&xmmRes))[j];
+			}
+			resData[i * 2] = res0;
+		}
+
+		resData[3] = 0;
+
+		return DVector<T, 3>(resData);
+	}
+
 
 	template<typename T, typename = std::enable_if_t<VSize == 3>>
 	static inline DVector<T, 3> faceforward(const DVector<T, 3> &goalV, const DVector<T, 3>& v2)
 	{
-		return if (dot(goalV, v2) < 0) ? -goalV ? goalV;
+		return (dot(goalV, v2) < 0) ? -goalV : goalV;
 	}
 
 	static inline void add(const DMatrix& m0, const DMatrix& m1, DMatrix& mres) noexcept

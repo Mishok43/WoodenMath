@@ -52,26 +52,11 @@ public:
 	   xmm(std::move(data))
 	{}
 
-
-	template<typename = std::enable_if_t<Size == 3>>
-	explicit DVector(const DVector<T, 4>& v) 
-	{
-		_mm_loada_t<T>(&v.xmm);
-		insert(3, 0);
-	}
-
 	template<typename = std::enable_if_t<Size == 4>>
 	explicit DVector(const DVector<T, 3>& v, T w=0) 
 	{
 		_mm_loada_t<T>(&v.xmm);
 		insert(3, w);
-	}
-
-	template<typename = std::enable_if_t<Size == 3>>
-	explicit DVector(DVector<T, 4>&& v):
-		xmm(std::move(v.xmm))
-	{
-		insert(3, 0);
 	}
 
 	template<typename = std::enable_if_t<Size == 4>>
@@ -80,6 +65,23 @@ public:
 	{
 		insert(3, w);
 	}
+
+
+	template<typename = std::enable_if_t<Size == 3>>
+	explicit DVector(const DVector<T, 4>& v) 
+	{
+		_mm_loada_t<T>(&v.xmm);
+		insert(3, 0);
+	}
+
+
+	template<typename = std::enable_if_t<Size == 3>>
+	explicit DVector(DVector<T, 4>&& v):
+		xmm(std::move(v.xmm))
+	{
+		insert(3, 0);
+	}
+
 
 	template<typename check = std::enable_if_t<std::is_same_v<__mT, __m128>>>
 	operator __m128() const
@@ -370,6 +372,11 @@ public:
 			}
 		}
 		return true;
+	}
+
+	void normalize()
+	{
+		(*this) /= this->length();
 	}
 
 	template<uint8_t controlValue>

@@ -39,6 +39,9 @@
     <ClInclude Include="DBounds.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="DTransform.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="stdafx.cpp">
