@@ -320,11 +320,14 @@ private:
 			__mT xmmRes = _mm_mul_t<T, __mT>(xmmV1, m0.xmm[i]);
 
 			T res0 = 0;
-			for (uint8_t j = 0; j < 3; ++j)
+			T res1 = 0;
+			for (uint8_t j = 0; j < 4; ++j)
 			{
 				res0 += ((T*)(&xmmRes))[j];
+				res1 += ((T*)(&xmmRes))[j + 4];
 			}
 			resData[i * 2] = res0;
+			resData[i * 2 + 1] = res1;
 		}
 
 		resData[3] = 0;
