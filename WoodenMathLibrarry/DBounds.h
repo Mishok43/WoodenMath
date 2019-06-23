@@ -167,7 +167,6 @@ public:
 		bool z = (b1.pMax.z() >= b2.pMin.z()) && (b1.pMin.z() <= b2.pMax.z());
 		return x && y && z;
 	}
-	
 };
 
 

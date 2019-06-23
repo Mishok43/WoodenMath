@@ -151,6 +151,7 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClInclude Include="DAnimatedTransform.h" />
     <ClInclude Include="DBounds.h" />
     <ClInclude Include="DMatrix.h" />
     <ClInclude Include="DQuaternion.h" />

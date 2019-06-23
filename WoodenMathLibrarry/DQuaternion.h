@@ -134,6 +134,13 @@ public:
 			);
 	}
 
+	static inline DTransform<T> makeTransform(const DQuaternion& q)
+	{
+		DMatrix<T> m = makeMatrix();
+		DMatrix<T> mInv = DMatrix<T>::transpose(m);
+		return DTransform<T>(std::move(m), std::move(mInv));
+	}
+
 	static inline DQuaternion slerp(const DQuaternion& q0, const DQuaternion& q1, T t)
 	{
 		assert(t >= 0.0 && t <= 1.0);

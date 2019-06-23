@@ -6,13 +6,27 @@
 
 WML_BEGIN
 
-
 template<typename T, uint8_t alignment = sse_alignment_size_v<__m256_t<T>>>
 class alignas(alignment) DTransform
 {
+	using Vector = typename DVector<T, 3>;
+	using Quaternion = typename DQuaternion<T>;
+	using Matrix = typename DMatrix<T>;
 public:
 
-	DTransform(DMatrix<T> m, DMatrix<T> mInv) :
+	DTransform(const Vector& trans, const Vector& scale, const Quaternion& rotation)
+	{
+		m = rotation.makeMatrix(rotation);
+		mInv = m.transpose(m);
+
+		m.setTransition(trans);
+		mInv.setTransition(-trans);
+
+		m.setScale(scale);
+		mInv.setScale(Vector(1.0) / scale);
+	}
+
+	DTransform(Matrix m, Matrix mInv) :
 		m(std::move(m)), mInv(std::move(mInv))
 	{}
 
@@ -40,6 +54,23 @@ public:
 		return v * mData;
 	}
 
+	template<typename lT>
+	inline DRay<lT> operator()(const DRay<lT>& v) const
+	{
+		DRay<lT> ray;
+		ray.origin = (*this)(v.origin);
+		ray.dir = (*this)(v.dir);
+		return ray;
+	}
+
+	template<typename lT>
+	inline DBounds<lT, 3> operator()(const DBounds<lT, 3>& b) const
+	{
+		DVector<lT, 3> p0 = (*this)(bounds.pMin);
+		DVector<lT, 3> p1 = (*this)(bounds.pMax);
+		return DBounds<lT, 3>(p0, p1);
+	}
+
 	void inverse()
 	{
 		std::swap(mData, mInvData);
@@ -51,12 +82,12 @@ public:
 		mInvData.transpose();
 	}
 
-	const DMatrix<T>& m() const
+	const Matrix& m() const
 	{
 		return mData;
 	}
 
-	const DMatrix<T>& mInv() const
+	const Matrix& mInv() const
 	{
 		return mInvData;
 	}
@@ -100,13 +131,13 @@ public:
 		T cosAngle = cos(angle);
 		T sinAngle = sin(angle);
 
-		t.mData = DMatrix<T>(
+		t.mData = Matrix(
 			1.0, 0.0, 0.0, 0.0,
 			0.0, cosAngle, -sinAngle, 0.0,
 			0.0, sinAngle, cosAngle, 0.0,
 			0.0, 0.0, 0.0, 1.0);
 
-		t.mInvData = DMatrix<T>.transpose(t.mData);
+		t.mInvData = Matrix.transpose(t.mData);
 	}
 
 	static DTransform makeRotateY(T angle)
@@ -115,13 +146,13 @@ public:
 		T cosAngle = cos(angle);
 		T sinAngle = sin(angle);
 
-		t.mData = DMatrix<T>(
+		t.mData = Matrix(
 			cosAngle, 0.0, sinAngle,  0.0,
 			0.0,	  1.0, 0.0,		  0.0,
 			-sinAngle, 0.0, cosAngle, 0.0,
 			0.0, 0.0, 0.0, 1.0);
 
-		t.mInvData = DMatrix<T>.transpose(t.mData);
+		t.mInvData = Matrix.transpose(t.mData);
 	}
 
 	static DTransform makeRotateZ(T angle)
@@ -130,13 +161,13 @@ public:
 		T cosAngle = cos(angle);
 		T sinAngle = sin(angle);
 
-		t.mData = DMatrix<T>(
+		t.mData = Matrix(
 			cosAngle, -sinAngle, 0.0, 0.0,
 			sinAngle, cosAngle, 0.0, 0.0,
 			0.0, 0.0, 1.0, 0.0,
 			0.0, 0.0, 0.0, 1.0);
 
-		t.mInvData = DMatrix<T>.transpose(t.mData);
+		t.mInvData = Matrix.transpose(t.mData);
 	}
 
 	static DTransform makeRotate(DVector<T, 3> axis, T angle)
@@ -144,7 +175,7 @@ public:
 		DQuaternion<T> q(std::move(axis), angle);
 		DTransform t;
 		t.mData = DQuaternion<T>.makeMatrix(q);
-		t.mInvData = DMatrix<T>.transpose(t.mData);
+		t.mInvData = Matrix.transpose(t.mData);
 		return t;
 	}
 
@@ -155,14 +186,14 @@ public:
 		DVector<T, 3> xBasis = DVector<T, 3>::normalize(DVector<T, 3>::cross(up, zBasis));
 		DVector<T, 3> yBasis = DVector<T, 3>::cross(zBasis, xBasis);
 
-		t.mInvData = DMatrix<T>(
+		t.mInvData = Matrix(
 			xBasis.x(), xBasis.y(), xBasis.z(), 0.0,
 			yBasis.z(), yBasis.y(), yBasis.z(), 0.0,
 			zBasis.x(), zBasis.y(), zBasis.z(), 0.0,
 			pos.x(), pos.y(), pos.z()
 		);
 
-		t.mData = DMatrix<T>(
+		t.mData = Matrix(
 			xBasis.x(), yBasis.x(), zBasis.x(), 0.0,
 			xBasis.y(), yBasis.y(), zBasis.y(), 0.0,
 			xBasis.z(), yBasis.z(), zBasis.z(), 0.0,
@@ -171,8 +202,8 @@ public:
 		return t;
 	}
 protected:
-	DMatrix<T> mData;
-	DMatrix<T> mInvData;
+	Matrix mData;
+	Matrix mInvData;
 };
 
 WML_END
