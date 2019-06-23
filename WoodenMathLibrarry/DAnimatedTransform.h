@@ -54,6 +54,13 @@ public:
 		return DTransform(trans, scale, rotation);
 	}
 
+	template<typename T>
+	inline T operator()(T&& v, float t) const
+	{
+		return (interpolateSafe(t))(v);
+	}
+
+
 	const Vector& getTrans0() const{ return transitions[0]; }
 	Vector& getTrans0() { return transitions[0]; }
 

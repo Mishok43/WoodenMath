@@ -55,6 +55,13 @@ public:
 	}
 
 	template<typename lT>
+	inline DNormal<lT> operator()(const DNormal<lT, 3>& n) const
+	{
+		Matrix mInvTranspose = Matrix::transpose(mInv);
+		return n * mInvTranspose;
+	}
+
+	template<typename lT>
 	inline DRay<lT> operator()(const DRay<lT>& v) const
 	{
 		DRay<lT> ray;
@@ -66,8 +73,8 @@ public:
 	template<typename lT>
 	inline DBounds<lT, 3> operator()(const DBounds<lT, 3>& b) const
 	{
-		DVector<lT, 3> p0 = (*this)(bounds.pMin);
-		DVector<lT, 3> p1 = (*this)(bounds.pMax);
+		DVector<lT, 3> p0 = (*this)(b.pMin);
+		DVector<lT, 3> p1 = (*this)(b.pMax);
 		return DBounds<lT, 3>(p0, p1);
 	}
 

@@ -226,7 +226,6 @@ public:
 			_mm_storea_t<T, __mT>((T*)(&res.xmm[i]), res.xmm[i]);
 		}
 
-
 		for (uint8_t i = 0; i < 4; ++i)
 		{
 			for (uint8_t j = i + 1; j < 4; ++j)

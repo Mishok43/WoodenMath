@@ -154,6 +154,7 @@
     <ClInclude Include="DAnimatedTransform.h" />
     <ClInclude Include="DBounds.h" />
     <ClInclude Include="DMatrix.h" />
+    <ClInclude Include="DNormal.h" />
     <ClInclude Include="DQuaternion.h" />
     <ClInclude Include="DRay.h" />
     <ClInclude Include="DTransform.h" />
