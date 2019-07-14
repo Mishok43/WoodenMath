@@ -48,6 +48,12 @@
     <ClInclude Include="DNormal.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="DPoint.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="HTypeTraits.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="stdafx.cpp">

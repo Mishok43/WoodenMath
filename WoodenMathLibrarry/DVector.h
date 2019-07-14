@@ -24,24 +24,23 @@ public:
 		xmm = _mm_set1_t<T, __mT>(broadcastValue);
 	}
 
-	template<typename check = std::enable_if_t<Size == 4>>
+	template<TTNumbrEqual(Size, 4)>
 	DVector(T x, T y, T z, T w)
 	{
 		xmm = _mm_setr_t<T>(x, y, z, w);
 	}
 
-	template<typename check = std::enable_if_t<Size == 3>>
+	template<TTNumbrEqual(Size, 3)>
 	DVector(T x, T y, T z)
 	{
 		xmm = _mm_setr_t<T>(x, y, z, 0);
 	}
 
-	template<typename check = std::enable_if_t<Size == 2>>
+	template<TTNumbrEqual(Size, 2)>
 	DVector(T x, T y)
 	{
 		xmm = _mm_setr_t<T>(x, y, 0, 0);
 	}
-
 
 	DVector(const __m_t<T>& data) :
 		xmm(data)
@@ -52,14 +51,14 @@ public:
 	   xmm(std::move(data))
 	{}
 
-	template<typename = std::enable_if_t<Size == 4>>
-	explicit DVector(const DVector<T, 3>& v, T w=0) 
+	template<TTNumbrEqual(Size, 4)>
+	explicit DVector(const DVector<T, 3>& v, T w=0)
 	{
 		_mm_loada_t<T>(&v.xmm);
 		insert(3, w);
 	}
 
-	template<typename = std::enable_if_t<Size == 4>>
+	template<TTNumbrEqual(Size, 4)>
 	explicit DVector(DVector<T, 3>&& v, T w = 0):
 		xmm(std::move(v.xmm))
 	{
@@ -67,15 +66,15 @@ public:
 	}
 
 
-	template<typename = std::enable_if_t<Size == 3>>
-	explicit DVector(const DVector<T, 4>& v) 
+	template<TTNumbrEqual(Size, 3)>
+	explicit DVector(const DVector<T, 4>& v)
 	{
 		_mm_loada_t<T>(&v.xmm);
 		insert(3, 0);
 	}
 
 
-	template<typename = std::enable_if_t<Size == 3>>
+	template<TTNumbrEqual(Size, 3)>
 	explicit DVector(DVector<T, 4>&& v):
 		xmm(std::move(v.xmm))
 	{
@@ -362,16 +361,19 @@ public:
 
 	inline bool operator==(const DVector& v2) const
 	{
-		DVector<T, Size> res = _mm_cmp_eq_t<T>(xmm, v2.xmm);
 		for (uint8_t i = 0; i < Size; ++i)
 		{
-			uint32_t k = *((uint32_t*)(&res[i]));
-			if (k == (uint32_t)0)
+			if ((*this)[i] != v2[i])
 			{
 				return false;
 			}
 		}
 		return true;
+	}
+
+	inline bool operator!=(const DVector& v2) const
+	{
+		return !((*this) == v2);
 	}
 
 	void normalize()
@@ -384,107 +386,112 @@ public:
 	{
 		return _mm_permute_ts<controlValue, T>::f(xmm); 
 	}
-public:
 
-
-	template<uint8_t rSize = Size>
-	static inline DVector abs(const DVector& v)
+	bool bIsAllZero()
 	{
-		DVector res;
-		for (uint8_t i = 0; i < rSize; ++i)
-		{
-			res[i] = std::abs(v[i]);
-		}
-		return res;
+		return 
 	}
-
-	template<uint8_t rSize = Size>
-	static inline T dot(const DVector& v1, const DVector& v2)
-	{
-		DVector res = v1*v2;
-
-		T resDot = 0;
-		for (uint8_t i = 0; i < rSize; ++i)
-		{
-			resDot += res[i];
-		}
-		return resDot;
-	}
-
-	static inline T absDot(const DVector& v1, const DVector& v2)
-	{
-		return std::abs(dot(v1, v2));
-	}
-
-	template<typename sizeCheck = std::enable_if_t<Size >= 2>>
-	static inline DVector cross(const DVector& v1, const DVector& v2)
-	{
-		DVector<T, Size> v1p = _mm_permute_ts<0b11001001, T>::f(v1.xmm); // Y Z X W
-		DVector<T, Size> v2p = _mm_permute_ts<0b11010010, T>::f(v2.xmm); // Z X Y W
-
-		DVector<T, Size> v3 = v1p*v2p;
-		v1p  = _mm_permute_ts<0b11001001, T>::f(v1p.xmm); // Z X Y W
-		v2p  = _mm_permute_ts<0b11010010, T>::f(v2p.xmm); // Y Z X W
-
-		DVector<T, Size> v4 = v1p*v2p;
-		return v3-v4;
-	}
-
-	static inline DVector lerp(const DVector& v1, const DVector& v2, const DVector& t)
-	{
-		DVector tInv = DVector(1) - t;
-		return mAdd(v1, tInv, v2 * t);
-	}
-
-	static inline DVector lerp(const DVector& v1, const DVector& v2, float t)
-	{
-		float tInv = 1.0 - t;
-		return mAdd(v1, tInv, v2 * t);
-	}
-
-	static inline DVector mAdd(const DVector& v1, float s, const DVector& v2)
-	{
-		return mAdd(v1, DVector(s), v2);
-	}
-
-	static inline DVector mAdd(const DVector& v1, const DVector& v2, const DVector& v3)
-	{
-		return _mm_madd_t<T>(v1.xmm, v2.xmm, v3.xmm);
-	}
-
-	static inline DVector normalize(const DVector& v)
-	{
-		return v / v.length();
-	}
-
-	static inline DVector minVector(const DVector& v1, const DVector& v2)
-	{
-		return _mm_min_t<T>(v1.xmm, v2.xmm);
-	}
-
-	static inline DVector maxVector(const DVector& v1, const DVector& v2)
-	{
-		return _mm_max_t<T>(v1.xmm, v2.xmm);
-	}
-
-	static inline void makeBasisByVector(const DVector& v1, DVector& v2, DVector& v3)
-	{
-
-		if (std::abs(v1.x()) > std::abs(v1.y()))
-		{
-			v2 = DVector(-v1.z(), 0, v1.x());
-		}
-		else
-		{
-			v2 = DVector(0, v1.z(), -v1.y());
-		}
-
-		v2 = v2.normalize(v2);;
-		v3 = cross(v1, v2);
-	}
-
-protected:
 };
+
+template<typename VT, uint8_t VSize>
+inline DVector<VT, VSize> abs(const DVector<VT, VSize>& v)
+{
+	DVector<VT, VSize> res;
+	for (uint8_t i = 0; i < VSize; ++i)
+	{
+		res[i] = std::abs(v[i]);
+	}
+	return res;
+}
+
+template<typename VT, uint8_t VSize>
+inline VT dot(const DVector<VT,VSize>& v1, const DVector<VT, VSize>& v2)
+{
+	DVector<VT, VSize> res = v1 * v2;
+
+	VT resDot = 0;
+	for (uint8_t i = 0; i < rSize; ++i)
+	{
+		resDot += res[i];
+	}
+	return resDot;
+}
+
+template<typename VT, uint8_t VSize>
+inline VT absDot(const DVector<VT, VSize>& v1, const DVector<VT, VSize>& v2)
+{
+	return std::abs(dot(v1, v2));
+}
+
+template<typename VT, uint8_t VSize>
+inline DVector<VT, VSize> cross(const DVector<VT, VSize>& v1, const DVector<VT, VSize>& v2)
+{
+	DVector<T, Size> v1p = _mm_permute_ts<0b11001001, T>::f(v1.xmm); // Y Z X W
+	DVector<T, Size> v2p = _mm_permute_ts<0b11010010, T>::f(v2.xmm); // Z X Y W
+
+	DVector<T, Size> v3 = v1p * v2p;
+	v1p = _mm_permute_ts<0b11001001, T>::f(v1p.xmm); // Z X Y W
+	v2p = _mm_permute_ts<0b11010010, T>::f(v2p.xmm); // Y Z X W
+
+	DVector<T, Size> v4 = v1p * v2p;
+	return v3 - v4;
+}
+
+template<typename VT, uint8_t VSize>
+inline DVector<VT, VSize> lerp(const DVector<VT, VSize>& v1, const DVector<VT, VSize>& v2, const DVector<VT, VSize>& t)
+{
+	DVector<VT, VSize> tInv = DVector<VT, VSize>(1) - t;
+	return mAdd(v1, tInv, v2 * t);
+}
+
+template<typename VT, uint8_t VSize>
+inline DVector<VT, VSize> lerp(const DVector<VT, VSize>& v1, const DVector<VT, VSize>& v2, float t)
+{
+	float tInv = 1.0 - t;
+	return mAdd(v1, tInv, v2 * t);
+}
+
+template<typename VT, uint8_t VSize>
+inline DVector<VT, VSize> mAdd(const DVector<VT, VSize>& v1, float s, const DVector<VT, VSize>& v2)
+{
+	return mAdd(v1, DVector<VT, VSize>(s), v2);
+}
+template<typename VT, uint8_t VSize>
+inline DVector<VT, VSize> mAdd(const DVector<VT, VSize>& v1, const DVector<VT, VSize>& v2, const DVector<VT, VSize>& v3)
+{
+	return _mm_madd_t<T>(v1.xmm, v2.xmm, v3.xmm);
+}
+template<typename VT, uint8_t VSize>
+inline DVector<VT, VSize> normalize(const DVector<VT, VSize>& v)
+{
+	return v / v.length();
+}
+template<typename VT, uint8_t VSize>
+inline DVector<VT, VSize> minVector(const DVector<VT, VSize>& v1, const DVector<VT, VSize>& v2)
+{
+	return _mm_min_t<T>(v1.xmm, v2.xmm);
+}
+template<typename VT, uint8_t VSize>
+inline DVector<VT, VSize> maxVector(const DVector<VT, VSize>& v1, const DVector<VT, VSize>& v2)
+{
+	return _mm_max_t<T>(v1.xmm, v2.xmm);
+}
+template<typename VT, uint8_t VSize>
+inline void makeBasisByVector(const DVector<VT, VSize>& v1, DVector<VT, VSize>& v2, DVector<VT, VSize>& v3)
+{
+
+	if (std::abs(v1.x()) > std::abs(v1.y()))
+	{
+		v2 = DVector<VT, VSize>(-v1.z(), 0, v1.x());
+	}
+	else
+	{
+		v2 = DVector<VT, VSize>(0, v1.z(), -v1.y());
+	}
+
+	v2 = v2.normalize(v2);;
+	v3 = cross(v1, v2);
+}
 
 
 using DVector2f = DVector<float, 2>;

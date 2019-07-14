@@ -18,6 +18,7 @@ public:
 		transitions[1] = std::move(transition1); scales[1] = std::move(scale1); quaternions[1] = std::move(quaternion1);
 	}
 
+
 	DTransform interpolate(float time) const
 	{
 		return DTransform(
@@ -54,12 +55,19 @@ public:
 		return DTransform(trans, scale, rotation);
 	}
 
+	
 	template<typename T>
 	inline T operator()(T&& v, float t) const
 	{
 		return (interpolateSafe(t))(v);
 	}
 
+	template<typename lT>
+	DBounds<lT, 3> boundsWithoutRotation(const DBounds<lT, 3>& b) const
+	{
+		using Bounds = DBounds<lT, 3>;
+		return Bounds((transform0())(b), (transform1())(b));
+	}
 
 	const Vector& getTrans0() const{ return transitions[0]; }
 	Vector& getTrans0() { return transitions[0]; }
@@ -78,6 +86,10 @@ public:
 
 	const Vector& getRotation1() const{ return quaternions[1]; }
 	Vector& getRotation1() { return quaternions[1]; }
+
+
+	DTransform transform0() const	{ return DTransform(transitions[0], scales[0], quaternions[0]); }
+	DTransform transform1() const { return DTransform(transitions[1], scales[1], quaternions[1]); }
 
 protected:
 	Vector transitions[2]; // LastElement = startTime. 12/16 bytes. alignement = 16. 

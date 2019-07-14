@@ -216,27 +216,6 @@ public:
 	}
 
 
-	static inline DMatrix transpose(const DMatrix& m) noexcept
-	{
-		DMatrix res = m;
-
-		// pre-store data 
-		for (size_t i = 0; i < Size; ++i)
-		{
-			_mm_storea_t<T, __mT>((T*)(&res.xmm[i]), res.xmm[i]);
-		}
-
-		for (uint8_t i = 0; i < 4; ++i)
-		{
-			for (uint8_t j = i + 1; j < 4; ++j)
-			{
-				T t = res[i][j];
-				res[i][j] = res[j][i];
-				res[j][i] = t;
-			}
-		}
-		return res;
-	}
 private:
 	template<typename T2=T, typename  std::enable_if_t<std::is_same_v<T2, double>, bool> = true>
 	friend inline DVector<T, 4> operator*(const DVector<T, 4>& v1, const DMatrix& m0) noexcept
@@ -414,6 +393,29 @@ private:
 		}
 	}
 };
+
+template<typename T>
+inline DMatrix<T> transpose(const DMatrix<T>& m) noexcept
+{
+	DMatrix<T> res = m;
+
+	// pre-store data 
+	for (size_t i = 0; i < Size; ++i)
+	{
+		_mm_storea_t<T, __mT>((T*)(&res.xmm[i]), res.xmm[i]);
+	}
+
+	for (uint8_t i = 0; i < 4; ++i)
+	{
+		for (uint8_t j = i + 1; j < 4; ++j)
+		{
+			T t = res[i][j];
+			res[i][j] = res[j][i];
+			res[j][i] = t;
+		}
+	}
+	return res;
+}
 
 using DMatrixf = DMatrix<float>;
 using DMatrixd = DMatrix<double>;

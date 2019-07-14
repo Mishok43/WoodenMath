@@ -13,7 +13,7 @@ public:
 	DRay()
 	{}
 
-	DRay(wml::DVector<T, 3> o, wml::DVector<T, 3> d):
+	DRay(DVector<T, 3> o, DVector<T, 3> d):
 		origin(std::move(o)),
 		dir(std::move(d))
 	{}
@@ -23,8 +23,8 @@ public:
 		return vector_type::mAdd(dir, t, origin);
 	}
 
-	wml::DVector<T, 3> origin;
-	wml::DVector<T, 3> dir;
+	DVector<T, 3> origin;
+	DVector<T, 3> dir;
 };
 
 

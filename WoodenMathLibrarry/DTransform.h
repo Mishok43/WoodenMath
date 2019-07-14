@@ -54,8 +54,14 @@ public:
 		return v * mData;
 	}
 
-	template<typename lT>
-	inline DNormal<lT> operator()(const DNormal<lT, 3>& n) const
+	template<typename lT, uint8_t lSize>
+	inline DPoint<lT, lSize> operator()(const DPoint<lT, lSize>& v) const
+	{
+		return v * mData;
+	}
+
+	template<typename lT, uint8_t lSize>
+	inline DNormal<lT, lSize> operator()(const DNormal<lT, lSize>& n) const
 	{
 		Matrix mInvTranspose = Matrix::transpose(mInv);
 		return n * mInvTranspose;

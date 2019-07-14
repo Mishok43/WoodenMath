@@ -3,7 +3,7 @@
 #include "DVector.h"
 
 WML_BEGIN
-template<typename T, uint8_t VSize, uint8_t alignment = wml::sse_alignment_size_v<wml::__m_t<T>>>
+template<typename T, uint8_t VSize, uint8_t alignment = sse_alignment_size_v<__m_t<T>>>
 class alignas(alignment) DBounds
 {
 public:

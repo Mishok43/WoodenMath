@@ -18,6 +18,8 @@
 
 
 #include "assert.h"
+#include "HTypeTraits.h"
+
 #include <stdint.h>
 #include <cstring>
 #include <algorithm>
