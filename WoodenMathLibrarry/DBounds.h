@@ -45,6 +45,63 @@ public:
 	inline const vector_type& operator[](uint8_t i = 0) const{ return *(&pMin+i); }
 	inline vector_type& operator[](uint8_t i = 0){ return *(&pMin+i); };
 
+	bool intersect(const DRay& ray, const float tNear, const float tFar)
+	{
+		tNear = 0;
+		tFar = ray.tMax;
+		for (uint8_t i = 0; i < 3; i++)
+		{
+			float invRayDir = ray.dir[i];
+			float tNearCur = invRayDir * (pMin[i] - ray.origin[i]);
+			float tFarCur = invRayDir * (pMax[i] - ray.origin[i]);
+			if (tNearCur > tFarCur)
+			{
+				std::swap(tNearCur, tFarCur);
+			}
+
+			if (tNearCur > tNear)
+			{
+				tNear = tNearCur;
+			}
+
+			if (tFarCur < tFar)
+			{
+				tFar = tFarCur;
+			}
+
+			if (tNear > tFar)
+			{
+				return false;
+			}
+		}
+
+		return true;
+	}
+
+	bool intersect(const DRay& ray, const DVector3f& invDir, const int dirIsNeg[3])
+	{
+		const DBounds& bounds = *this;
+
+		float tMin = (bounds[dirIsNeg[0]].x() - ray.origin.x())*invDir.x();
+		float tMax = (bounds[1 - dirIsNeg[0]].x() - ray.origin.x())*invDir.x();
+
+		float tYMin = (bounds[dirIsNeg[1]].y() - ray.origin.y())*invDir.y();
+		float tYMax = (bounds[1 - dirIsNeg[1]].y()- ray.origin.y())*invDir.y();
+
+		if (tMin > tYMax || tYMin > tMax) return false;
+		if (tYMin > tMin) tMin = tYMin;
+		if (tYMax < tMax) tMax = tYMax;
+
+		float tZMin = (bounds[dirIsNeg[1]].z() - ray.origin.z())*invDir.z();
+		float tZMax = (bounds[1 - dirIsNeg[1]].z() - ray.origin.z())*invDir.z();
+
+		if (tMin > tZMax || tZMin > tMax) return false;
+		if (tZMin > tMin) tMin = tZMin;
+		if (tZMax < tMax) tMax = tZMax;
+
+		return (tMin < ray.tMax) && (tMax > 0);
+	}
+
 	vector_type corner(uint8_t i = 0) const
 	{
 		return vector_type((*this)[(i & 1)].x(),

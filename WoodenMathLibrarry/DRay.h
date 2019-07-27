@@ -25,6 +25,7 @@ public:
 
 	DVector<T, 3> origin;
 	DVector<T, 3> dir;
+	float t, tMax;
 };
 
 

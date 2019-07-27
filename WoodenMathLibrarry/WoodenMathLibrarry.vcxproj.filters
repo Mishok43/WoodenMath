@@ -54,6 +54,9 @@
     <ClInclude Include="HTypeTraits.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="HSolver.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="stdafx.cpp">

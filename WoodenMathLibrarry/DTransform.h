@@ -6,6 +6,14 @@
 
 WML_BEGIN
 
+
+struct inv_transform_type
+{
+};
+
+#define INV_TRANFORM wml::inv_transform_type()
+
+
 template<typename T, uint8_t alignment = sse_alignment_size_v<__m256_t<T>>>
 class alignas(alignment) DTransform
 {
@@ -35,6 +43,8 @@ public:
 		return DTransform(m*v.m, mInv*v.mInv);
 	}
 
+
+
 	inline DTransform& operator*=(const DTransform& v)
 	{
 		m *= v.m;
@@ -42,6 +52,19 @@ public:
 		return *this;
 	}
 
+	
+	inline Matrix operator()(const Matrix& m) const
+	{
+		return m*mData;
+	}
+
+
+	inline Matrix operator()(const Matrix& m, inv_transform_type) const
+	{
+		return m * mInvData;
+	}
+
+	
 	template<typename lT>
 	inline DVector<lT, 3> operator()(const DVector<lT, 3>& v) const
 	{
@@ -49,9 +72,21 @@ public:
 	}
 
 	template<typename lT>
+	inline DVector<lT, 3> operator()(const DVector<lT, 3>& v, inv_transform_type) const
+	{
+		return v * mInvData;
+	}
+
+	template<typename lT>
 	inline DVector<lT, 4> operator()(const DVector<lT, 4>& v) const
 	{
 		return v * mData;
+	}
+
+	template<typename lT>
+	inline DVector<lT, 4> operator()(const DVector<lT, 4>& v, inv_transform_type) const
+	{
+		return v * mInvData;
 	}
 
 	template<typename lT, uint8_t lSize>
@@ -61,9 +96,22 @@ public:
 	}
 
 	template<typename lT, uint8_t lSize>
+	inline DPoint<lT, lSize> operator()(const DPoint<lT, lSize>& v, inv_transform_type) const
+	{
+		return v * mInvData;
+	}
+
+	template<typename lT, uint8_t lSize>
 	inline DNormal<lT, lSize> operator()(const DNormal<lT, lSize>& n) const
 	{
 		Matrix mInvTranspose = Matrix::transpose(mInv);
+		return n * mInvTranspose;
+	}
+
+	template<typename lT, uint8_t lSize>
+	inline DNormal<lT, lSize> operator()(const DNormal<lT, lSize>& n, inv_transform_type) const
+	{
+		Matrix mInvTranspose = Matrix::transpose(mData);
 		return n * mInvTranspose;
 	}
 
@@ -77,10 +125,27 @@ public:
 	}
 
 	template<typename lT>
+	inline DRay<lT> operator()(const DRay<lT>& v, inv_transform_type) const
+	{
+		DRay<lT> ray;
+		ray.origin = (*this)(v.origin, inv_transform_type());
+		ray.dir = (*this)(v.dir, inv_transform_type());
+		return ray;
+	}
+
+	template<typename lT>
 	inline DBounds<lT, 3> operator()(const DBounds<lT, 3>& b) const
 	{
 		DVector<lT, 3> p0 = (*this)(b.pMin);
 		DVector<lT, 3> p1 = (*this)(b.pMax);
+		return DBounds<lT, 3>(p0, p1);
+	}
+
+	template<typename lT>
+	inline DBounds<lT, 3> operator()(const DBounds<lT, 3>& b, inv_transform_type) const
+	{
+		DVector<lT, 3> p0 = (*this)(b.pMin, inv_transform_type());
+		DVector<lT, 3> p1 = (*this)(b.pMax, inv_transform_type());
 		return DBounds<lT, 3>(p0, p1);
 	}
 
