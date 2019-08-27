@@ -28,5 +28,6 @@ public:
 	float t, tMax;
 };
 
+using DRayf = typename DRay<float>;
 
 WML_END

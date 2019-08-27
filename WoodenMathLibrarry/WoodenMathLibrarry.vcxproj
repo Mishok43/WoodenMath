@@ -159,6 +159,7 @@
     <ClInclude Include="DQuaternion.h" />
     <ClInclude Include="DRay.h" />
     <ClInclude Include="DTransform.h" />
+    <ClInclude Include="HFloatUtils.h" />
     <ClInclude Include="HSolver.h" />
     <ClInclude Include="HTypeTraits.h" />
     <ClInclude Include="stdafx.h" />
