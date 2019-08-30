@@ -29,6 +29,7 @@ public:
 	float t, tMax;
 };
 
+using DRayf = typename DRay<float>;
 
 using DRayf = typename DRay<float>;
 using DRayd = typename DRay<double>;
