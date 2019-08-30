@@ -1,15 +1,17 @@
 #pragma once
 #include "stdafx.h"
 #include "DVector.h"
+#include "DPoint.h"
+#include "DRay.h"
 
 WML_BEGIN
 template<typename T, uint8_t VSize, uint8_t alignment = sse_alignment_size_v<__m_t<T>>>
 class alignas(alignment) DBounds
 {
 public:
-	using vector_type = typename DVector<T, VSize>;
+	using point_type = typename DPoint<T, VSize>;
 
-	vector_type pMin, pMax;
+	point_type pMin, pMax;
 
 	DBounds() :
 		pMax(std::numeric_limits<T>::lowest()),
@@ -17,33 +19,33 @@ public:
 	{
 	}
 
-	explicit DBounds(const vector_type& p) :
+	explicit DBounds(const point_type& p) :
 		pMin(p), pMax(p)
 	{
 	}
 
-	explicit DBounds(const DBounds& b, const vector_type& p) :
-		pMin(vector_type::minVector(b.pMin, p)),
-		pMax(vector_type::maxVector(b.pMax, p))
+	explicit DBounds(const DBounds& b, const point_type& p) :
+		pMin(minVector(b.pMin, p)),
+		pMax(maxVector(b.pMax, p))
 	{}
 
 	explicit DBounds(const DBounds& b0, const DBounds& b1) :
-		pMin(vector_type::minVector(b0.pMin, b1.pMin)),
-		pMax(vector_type::maxVector(b0.pMax, b1.pMax)),
+		pMin(minVector(b0.pMin, b1.pMin)),
+		pMax(maxVector(b0.pMax, b1.pMax)),
 	{}
 
-	DBounds(const vector_type& p1, const vector_type& p2):
-		pMin(vector_type::minVector(p1, p2)),
-		pMax(vector_type::maxVector(p1, p2))
+	DBounds(const point_type& p1, const point_type& p2):
+		pMin(minVector(p1, p2)),
+		pMax(maxVector(p1, p2))
 	{}
 
-	DBounds(vector_type pMin, vector_type pMax, std::true_type&& p1IsMinp2IsMax) :
+	DBounds(point_type pMin, point_type pMax, std::true_type&& p1IsMinp2IsMax) :
 		pMin(std::move(p1)),
 		pMax(std::move(p2))
 	{}
 
-	inline const vector_type& operator[](uint8_t i = 0) const{ return *(&pMin+i); }
-	inline vector_type& operator[](uint8_t i = 0){ return *(&pMin+i); };
+	inline const point_type& operator[](uint8_t i = 0) const{ return *(&pMin+i); }
+	inline point_type& operator[](uint8_t i = 0){ return *(&pMin+i); };
 
 	bool intersect(const DRay& ray, const float tNear, const float tFar)
 	{
@@ -102,21 +104,21 @@ public:
 		return (tMin < ray.tMax) && (tMax > 0);
 	}
 
-	vector_type corner(uint8_t i = 0) const
+	point_type corner(uint8_t i = 0) const
 	{
-		return vector_type((*this)[(i & 1)].x(),
+		return point_type((*this)[(i & 1)].x(),
 						   (*this)[(i & 2) >> 1].y(),
 						   (*this)[(i & 4) >> 2].z());
 	}
 
-	bool inside(const vector_type& p) const 
+	bool inside(const point_type& p) const 
 	{
 		return p.x() >= pMin.x() && p.x() <= pMax.x() &&
 			p.y() >= pMin.y() && p.y() <= pMax.y() &&
 			p.z() >= pMin.z() && p.z() <= pMax.z();
 	}
 
-	bool insideExclusive(const vector_type& p) const
+	bool insideExclusive(const point_type& p) const
 	{
 		return p.x() > pMin.x() && p.x() < pMax.x() &&
 			p.y() > pMin.y() && p.y() < pMax.y() &&
@@ -125,28 +127,28 @@ public:
 
 	inline void expand(T delta)
 	{
-		expand(vector_type(delta));
+		expand(point_type(delta));
 	}
 
-	inline void expand(const vector_type& delta)
+	inline void expand(const point_type& delta)
 	{
 		pMin -= delta;
 		pMax += delta;
 	}
 
-	inline vector_type diagonal() const
+	inline point_type diagonal() const
 	{
 		return pMax - pMin;
 	}
 
 	inline T surfaceArea() const
 	{
-		vector_type d = diagonal();
+		point_type d = diagonal();
 		if constexpr (VSize == 3)
 		{
 			// x*y + y*z+z*x
-			vector_type d2 = d.permute<0b11001001>(); // y z x w
-			return 2*vector_type::dot<3>(d, d2);
+			point_type d2 = d.permute<0b11001001>(); // y z x w
+			return 2*point_type::dot<3>(d, d2);
 		}
 		else
 		{
@@ -159,13 +161,13 @@ public:
 	{
 		static_assert(VSize == 3);
 
-		vector_type d = diagonal();
+		point_type d = diagonal();
 		return d.x()*d.y()*d.z();
 	}
 
 	uint8_t maxExtent() const
 	{
-		vector_type d = diagonal();
+		point_type d = diagonal();
 		if constexpr (VSize == 3)
 		{
 			if (d.x() > d.y() && d.x() > d.z())
@@ -187,18 +189,18 @@ public:
 		}
 	}
 
-	inline vector_type lerp(const vector_type& t) const
+	inline point_type lerp(const point_type& t) const
 	{
-		return vector_type.lerp(pMin, pMax, t);
+		return point_type.lerp(pMin, pMax, t);
 	}
 
-	inline vector_type getLerpFactors(const vector_type& v) const
+	inline point_type getLerpFactors(const point_type& v) const
 	{
-		vector_type o = v - pMin;
+		point_type o = v - pMin;
 		return o / diagonal();
 	}
 
-	inline boundingSphere(vector_type& center, T& radius) const
+	inline boundingSphere(point_type& center, T& radius) const
 	{
 		center = (pMin + pMax) / 2;
 		radius = (pMax - center).length();

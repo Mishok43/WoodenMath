@@ -323,42 +323,19 @@ public:
 		return Size;
 	}
 
+	template<uint8_t LSize = Size>
 	T length2() const
 	{
-		return dot(*this, *this);
+		return dot<LSize>(*this, *this);
 	}
 
+	template<uint8_t LSize = Size>
 	T length() const
 	{
-		return std::sqrt(dot(*this, *this));
+		return std::sqrt(dot<LSize>(*this, *this));
 	}
 
-	inline T minComponent()
-	{
-		T m = (*this)[0];
-		for (uint8_t i = 1; i < Size; ++i)
-		{
-			if (m > (*this)[i])
-			{
-				m = (*this)[i];
-			}
-		}
-		return m;
-	}
-
-	inline T maxComponent()
-	{
-		T m = (*this)[0];
-		for (uint8_t i = 1; i < Size; ++i)
-		{
-			if (m < (*this)[i])
-			{
-				m = (*this)[i];
-			}
-		}
-		return m;
-	}
-
+	
 	inline bool operator==(const DVector& v2) const
 	{
 		for (uint8_t i = 0; i < Size; ++i)
@@ -404,18 +381,26 @@ inline DVector<VT, VSize> abs(const DVector<VT, VSize>& v)
 	return res;
 }
 
-template<typename VT, uint8_t VSize>
-inline VT dot(const DVector<VT,VSize>& v1, const DVector<VT, VSize>& v2)
+template<uint8_t DotSize, typename VT, uint8_t VSize>
+inline VT dot(const DVector<VT, VSize>& v1, const DVector<VT, VSize>& v2)
 {
 	DVector<VT, VSize> res = v1 * v2;
 
 	VT resDot = 0;
-	for (uint8_t i = 0; i < rSize; ++i)
+	for (uint8_t i = 0; i < DotSize; ++i)
 	{
 		resDot += res[i];
 	}
 	return resDot;
 }
+
+template<typename VT, uint8_t VSize>
+inline VT dot(const DVector<VT,VSize>& v1, const DVector<VT, VSize>& v2)
+{
+	return dot<VSize, VT, VSize>(v1, v2);
+}
+
+
 
 template<typename VT, uint8_t VSize>
 inline VT absDot(const DVector<VT, VSize>& v1, const DVector<VT, VSize>& v2)
@@ -441,23 +426,79 @@ template<typename VT, uint8_t VSize>
 inline DVector<VT, VSize> lerp(const DVector<VT, VSize>& v1, const DVector<VT, VSize>& v2, const DVector<VT, VSize>& t)
 {
 	DVector<VT, VSize> tInv = DVector<VT, VSize>(1) - t;
-	return mAdd(v1, tInv, v2 * t);
+	return mad(v1, tInv, v2 * t);
 }
+
+template<typename VT, uint8_t VSize>
+inline VT minComponent(const DVector<VT, VSize>& v) 
+{
+	T m = v[0];
+	for (uint8_t i = 1; i < Size; ++i)
+	{
+		if (m > v[i])
+		{
+			m = v[i];
+		}
+	}
+	return m;
+}
+
+template<typename VT, uint8_t VSize>
+void permute(const DVector<VT, VSize> &v, const DVector<uint8_t, VSize>& indices)
+{
+	DVector<VT, VSize> res;
+	for (uint8_t i = 0; i < VSize; i++)
+	{
+		res[i] = v[indices[i]];
+	}
+	return res;
+}
+
+template<typename VT, uint8_t VSize>
+inline uint8_t maxDimension(const DVector<VT, VSize>& v)
+{
+	VT m = v[0];
+	uint8_t iM = 0;
+	for (uint8_t i = 1; i < Size; ++i)
+	{
+		if (m < v[i])
+		{
+			m = v[i];
+			iM = i;
+		}
+	}
+	return iM;
+}
+
+template<typename VT, uint8_t VSize>
+inline VT maxComponent(const DVector<VT, VSize>& v)
+{
+	VT m = v[0];
+	for (uint8_t i = 1; i < Size; ++i)
+	{
+		if (m < v[i])
+		{
+			m = v[i];
+		}
+	}
+	return m;
+}
+
 
 template<typename VT, uint8_t VSize>
 inline DVector<VT, VSize> lerp(const DVector<VT, VSize>& v1, const DVector<VT, VSize>& v2, float t)
 {
 	float tInv = 1.0 - t;
-	return mAdd(v1, tInv, v2 * t);
+	return mad(v1, tInv, v2 * t);
 }
 
 template<typename VT, uint8_t VSize>
-inline DVector<VT, VSize> mAdd(const DVector<VT, VSize>& v1, float s, const DVector<VT, VSize>& v2)
+inline DVector<VT, VSize> mad(const DVector<VT, VSize>& v1, float s, const DVector<VT, VSize>& v2)
 {
-	return mAdd(v1, DVector<VT, VSize>(s), v2);
+	return mad(v1, DVector<VT, VSize>(s), v2);
 }
 template<typename VT, uint8_t VSize>
-inline DVector<VT, VSize> mAdd(const DVector<VT, VSize>& v1, const DVector<VT, VSize>& v2, const DVector<VT, VSize>& v3)
+inline DVector<VT, VSize> mad(const DVector<VT, VSize>& v1, const DVector<VT, VSize>& v2, const DVector<VT, VSize>& v3)
 {
 	return _mm_madd_t<T>(v1.xmm, v2.xmm, v3.xmm);
 }
@@ -509,5 +550,9 @@ using DVector4i = DVector<int32_t, 4>;
 using DVector2u = DVector<uint32_t, 2>;
 using DVector3u = DVector<uint32_t, 3>;
 using DVector4u = DVector<uint32_t, 4>;
+
+using DVector2u8 = DVector<uint8_t, 2>;
+using DVector3u8 = DVector<uint8_t, 3>;
+using DVector4u8 = DVector<uint8_t, 4>;
 
 WML_END

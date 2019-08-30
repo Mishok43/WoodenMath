@@ -3,6 +3,7 @@
 #include "stdafx.h"
 #include "DMatrix.h"
 #include "DQuaternion.h"
+#include "DBounds.h"
 
 WML_BEGIN
 
