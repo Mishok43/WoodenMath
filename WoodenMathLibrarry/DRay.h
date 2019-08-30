@@ -24,7 +24,7 @@ public:
 		return mad(dir, t, origin);
 	}
 
-	DPoint3f<T, 3> origin;
+	DPoint<T, 3> origin;
 	DVector<T, 3> dir;
 	float t, tMax;
 };

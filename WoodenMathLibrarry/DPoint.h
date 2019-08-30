@@ -30,21 +30,21 @@ public:
 
 
 	template<TTNumbrEqual(Size, 3)>
-	DPoint(T x=0, T y=0) :
+	DPoint(T x=0, T y=0, T z=0) :
 		DVector(x, y, z)
 	{
 		insert(3, 1);
 	}
 
 	template<TTNumbrEqual(Size, 3)>
-	explicit DPoint(const DVector<T, Size>& v)
+	 DPoint(const DVector<T, Size>& v)
 	{
 		_mm_loada_t<T>(&v.xmm);
 		insert(3, 1);
 	}
 
 	template<TTNumbrEqual(Size, 3)>
-	explicit DPoint(DVector<T, 3>&& v) :
+	 DPoint(DVector<T, 3>&& v) :
 		xmm(std::move(v.xmm))
 	{
 		insert(3, 1);
@@ -59,14 +59,14 @@ public:
 	}
 
 	template<TTNumbrEqual(Size, 2)>
-	explicit DPoint(const DVector<T, Size>& v)
+	 DPoint(const DVector<T, Size>& v)
 	{
 		_mm_loada_t<T>(&v.xmm);
 		insert(3, 1);
 	}
 
 	template<TTNumbrEqual(Size, 2)>
-	explicit DPoint(DVector<T, 2>&& v) :
+	 DPoint(DVector<T, 2>&& v) :
 		xmm(std::move(v.xmm))
 	{
 		insert(3, 1);

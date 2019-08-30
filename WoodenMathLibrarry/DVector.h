@@ -366,7 +366,14 @@ public:
 
 	bool bIsAllZero()
 	{
-		return 
+		for (uint8_t i = 0; i < Size; ++i)
+		{
+			if ((*this)[i] != 0)
+			{
+				return false;
+			}
+		}
+		return true;
 	}
 };
 

@@ -161,6 +161,18 @@ public:
 		mInvData.transpose();
 	}
 
+	// UNSAFE!
+	Matrix& m()
+	{
+		return mData;
+	}
+
+	// UNSAFE!
+	Matrix& mInv()
+	{
+		return mInvData;
+	}
+
 	const Matrix& m() const
 	{
 		return mData;
