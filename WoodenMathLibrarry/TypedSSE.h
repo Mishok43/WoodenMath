@@ -705,7 +705,7 @@ namespace TypedSSE
 		__m128i buffer = _mm_mul_epu32(a, b);
 		return _mm_add_epi32(buffer, c);
 	}
-
+	
 	template<uint8_t controlValue, typename T, typename __mT = __m_t<T>>
 	struct _mm_permute_ts
 	{

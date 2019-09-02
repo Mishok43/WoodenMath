@@ -3,6 +3,7 @@
 #include "stdafx.h"
 #include "DMatrix.h"
 #include "DQuaternion.h"
+#include "DBounds.h"
 
 WML_BEGIN
 
@@ -158,6 +159,18 @@ public:
 	{
 		mData.transpose();
 		mInvData.transpose();
+	}
+
+	// UNSAFE!
+	Matrix& m()
+	{
+		return mData;
+	}
+
+	// UNSAFE!
+	Matrix& mInv()
+	{
+		return mInvData;
 	}
 
 	const Matrix& m() const

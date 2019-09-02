@@ -20,14 +20,14 @@ public:
 	
 
 	template<TTNumbrEqual(Size, 3)>
-	explicit DNormal(const DVector<T, Size>& v)
+	DNormal(const DVector<T, Size>& v)
 	{
 		_mm_loada_t<T>(&v.xmm);
 		insert(3, 0);
 	}
 
 	template<TTNumbrEqual(Size, 3)>
-	explicit DNormal(DVector<T, 3>&& v) :
+	DNormal(DVector<T, 3>&& v) :
 		xmm(std::move(v.xmm))
 	{
 		insert(3, 0);
@@ -44,7 +44,7 @@ public:
 	{}
 
 	template<TTNumbrEqual(Size, 2)>
-	explicit DNormal(const DVector<T, Size>& v)
+	DNormal(const DVector<T, Size>& v)
 	{
 		_mm_loada_t<T>(&v.xmm);
 		insert(3, 0);
@@ -52,7 +52,7 @@ public:
 	}
 
 	template<TTNumbrEqual(Size, 2)>
-	explicit DNormal(DVector<T, 2>&& v) :
+	DNormal(DVector<T, 2>&& v) :
 		xmm(std::move(v.xmm))
 	{
 		insert(3, 0);

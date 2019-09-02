@@ -166,9 +166,9 @@ template<typename T> inline DMatrix<T> makeMatrix(const DQuaternion<T>& q)
 	q4q = q4q.permute<0b01100110>(); // q4q3 q4q2 q4q3 q4q2
 
 	// 2(q2q3 - q1q4) | 2(q2q3 + q1q4)
-	DVector<T, 4> res1 = mAdd(q4q1, sign, q2q3)*2.0;
+	DVector<T, 4> res1 = mad(q4q1, sign, q2q3)*2.0;
 	// 2(q1q2 - q4q3) | 2(q1q3 + q4q2) | 2(q1q2 +q4q3) | 2(q1q3 - q4q2)
-	DVector<T, 4> res2 = mAdd(q4q, sign, q1q)*2.0;
+	DVector<T, 4> res2 = mad(q4q, sign, q1q)*2.0;
 
 	return DMatrix<T>(
 		res0[0], res2[2], res2[3], 0.0,
