@@ -46,36 +46,54 @@ namespace TypedSSE
 	template<typename T>
 	constexpr uint8_t sse_alignment_size_v = sse_alignment_size<T>::size;
 	
-	template<typename T>
+	template<typename T, uint8_t factor>
 	struct __m_type
 	{};
 
 	template<>
-	struct __m_type<float>
+	struct __m_type<float, 1>
 	{
 		using type = typename __m128;
 	};
 
 	template<>
-	struct __m_type<double>
+	struct __m_type<float, 2>
+	{
+		using type = typename __m256;
+	};
+
+	template<>
+	struct __m_type<double, 1>
 	{
 		using type = typename __m256d;
 	};
 
 	template<>
-	struct __m_type<int32_t>
+	struct __m_type<int32_t, 1>
 	{
 		using type = typename __m128i;
 	};
 
 	template<>
-	struct __m_type<uint32_t>
+	struct __m_type<int32_t, 2>
+	{
+		using type = typename __m256i;
+	};
+
+	template<>
+	struct __m_type<uint32_t, 1>
 	{
 		using type = typename __m128i;
 	};
 
-	template<typename T>
-	using __m_t = typename __m_type<T>::type;
+	template<>
+	struct __m_type<uint32_t, 2>
+	{
+		using type = typename __m256i;
+	};
+
+	template<typename T, uint8_t factor=1>
+	using __m_t = typename __m_type<T, factor>::type;
 
 	template<typename T>
 	struct __m256_type
@@ -446,6 +464,32 @@ namespace TypedSSE
 	inline auto _mm_add_t<double, __m256d>(__m256d a, __m256d b)
 	{
 		return _mm256_add_pd(a, b);
+	}
+
+	// _MM_ADD_T
+	template<typename T, typename __mT>
+	inline auto _mm_sqrt_t(__mT a)
+	{
+		static_assert(false, "The type is not supported");
+		return;
+	}
+
+	template<>
+	inline auto _mm_sqrt_t<float, __m128>(__m128 a)
+	{
+		return _mm_sqrt_ps(a);
+	}
+
+	template<>
+	inline auto _mm_sqrt_t<float, __m256>(__m256 a)
+	{
+		return _mm256_sqrt_ps(a);
+	}
+
+	template<>
+	inline auto _mm_sqrt_t<double, __m256d>(__m256d a)
+	{
+		return _mm256_sqrt_pd(a);
 	}
 
 	// _MM_MIN_T
