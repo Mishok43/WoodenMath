@@ -16,6 +16,12 @@
 #define WML_END }
 
 
+WML_BEGIN
+float lerp(float a, float b, float t)
+{
+	return a * (1.0 - t) + b * t;
+}
+WML_END
 
 #include "assert.h"
 #include "HTypeTraits.h"
