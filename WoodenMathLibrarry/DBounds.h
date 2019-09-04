@@ -44,10 +44,10 @@ public:
 		pMax(std::move(p2))
 	{}
 
-	inline const point_type& operator[](uint8_t i = 0) const{ return *(&pMin+i); }
-	inline point_type& operator[](uint8_t i = 0){ return *(&pMin+i); };
+	inline const point_type& operator[](uint8_t i) const{ return *(&pMin+i); }
+	inline point_type& operator[](uint8_t i){ return *(&pMin+i); };
 
-	bool intersect(const DRay& ray, const float tNear, const float tFar)
+	bool intersect(const DRayf& ray, const float tNear, const float tFar) const
 	{
 		tNear = 0;
 		tFar = ray.tMax;
@@ -80,7 +80,7 @@ public:
 		return true;
 	}
 
-	bool intersect(const DRay& ray, const DVector3f& invDir, const int dirIsNeg[3])
+	bool intersect(const DRayf& ray, const DVector3f& invDir, const int dirIsNeg[3]) const
 	{
 		const DBounds& bounds = *this;
 
