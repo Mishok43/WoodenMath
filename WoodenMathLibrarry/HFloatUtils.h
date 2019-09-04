@@ -1,10 +1,15 @@
 #pragma once
 #include "stdafx.h"
+#include <limits>
 
 WML_BEGIN
 
 namespace FloatUtils
 {
+	static constexpr float FLOAT_MAX = std::numeric_limits<float>::max();
+	static constexpr float FLOAT_INF = std::numeric_limits<float>::infinity();
+	static constexpr float FLOAT_MACHINE_EPSILON = std::numeric_limits<float>::epsilon()*0.5;
+
 	inline uint32_t floatToBits(float f)
 	{
 		uint32_t ui;

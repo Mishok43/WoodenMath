@@ -8,7 +8,7 @@ WML_BEGIN
 
 using namespace TypedSSE;
 
-template<typename T, uint8_t Size, typename __mT = __m_t<T>, uint8_t alignment = sse_alignment_size_v<__mT>>
+template<typename T, uint8_t Size, typename __mT = __m_t<T, (Size+3)/4>, uint8_t alignment = sse_alignment_size_v<__mT>>
 class alignas(alignment) DVector
 {
 public:
@@ -149,6 +149,18 @@ public:
 	}
 
 
+	inline bool operator==(T value)
+	{
+		for (uint8_t i = 0; i < Size; i++)
+		{
+			if ((*this)[i] != value)
+            {
+				return false;
+			}
+		}
+
+		return true;
+	}
 
 	inline DVector operator+(const DVector& v) const
 	{
@@ -407,7 +419,15 @@ inline VT dot(const DVector<VT,VSize>& v1, const DVector<VT, VSize>& v2)
 	return dot<VSize, VT, VSize>(v1, v2);
 }
 
-
+template<typename VT, uint8_t VSize>
+inline VT clamp(const DVector<VT, VSize>& v, float low, float high = std::numeric_limits<float>())
+{
+	for (uint8_t i = 0; i < VSize; i++)
+	{
+		v[i] = std::clamp(low, high);
+	}
+	return v;
+}
 
 template<typename VT, uint8_t VSize>
 inline VT absDot(const DVector<VT, VSize>& v1, const DVector<VT, VSize>& v2)
@@ -491,6 +511,11 @@ inline VT maxComponent(const DVector<VT, VSize>& v)
 	return m;
 }
 
+template<typename VT, uint8_t VSize, typename std::enable_if_t<std::is_same_v<VT, float> || std::is_same_v<VT, double>>>
+inline DVector<VT, VSize> sqrt(const DVector<VT, VSize>& v)
+{
+	return _mm_sqrt_t(v);
+}
 
 template<typename VT, uint8_t VSize>
 inline DVector<VT, VSize> lerp(const DVector<VT, VSize>& v1, const DVector<VT, VSize>& v2, float t)
@@ -545,6 +570,7 @@ inline void makeBasisByVector(const DVector<VT, VSize>& v1, DVector<VT, VSize>& 
 using DVector2f = DVector<float, 2>;
 using DVector3f = DVector<float, 3>;
 using DVector4f = DVector<float, 4>;
+using DVector8f = DVector<float, 8>;
 
 using DVector2d = DVector<double, 2>;
 using DVector3d = DVector<double, 3>;
