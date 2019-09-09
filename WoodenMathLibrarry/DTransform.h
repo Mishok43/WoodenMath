@@ -35,6 +35,12 @@ public:
 		mInv.setScale(Vector(1.0) / scale);
 	}
 
+	DTransform(Matrix m)
+		m(std::move(m))
+	{
+		mInv = inverse(m);
+	}
+
 	DTransform(Matrix m, Matrix mInv) :
 		m(std::move(m)), mInv(std::move(mInv))
 	{}
@@ -208,6 +214,25 @@ public:
 		return t;
 	}
 
+	DTransform makeOrthographic(float zNear, float zFar)
+	{
+		DTransform r = makeScale(1, 1, 1 / (zFar - zNear));
+		r.makeTranslate(DVector3f(0.0, 0.0, -zNear));
+		return r;
+	}
+
+	DTransform makePerspective(float fov, float n, float f)
+	{
+		DMatrixf perps = {
+			1.0, 0.0, 0.0, 0.0,
+			0.0, 1.0, 0.0, 0.0,
+			0.0, 0.0, f / (f - n), 0.0
+			0.0, 0.0, -f * n(f - n), 1.0 };
+
+		float invTanAng = 1.0 / std::tan(radians(fov)/2);
+		return DTransform(std::move(perps))*makeScale(DVector3f(invTanAng, invTanAng, 1.0));
+	}
+
 	static DTransform makeScale(const DVector<T, 3>& v)
 	{
 		DTransform t;
@@ -296,6 +321,15 @@ protected:
 	Matrix mData;
 	Matrix mInvData;
 };
+
+template<typename T>
+static DTransform<T> inverse(const DTransform<T>& transform)
+{
+	return DTransform(transform.mInv(), transform.m());
+}
+
+using DTransformf = typename DTransform<float>;
+using DTransformd = typename DTransform<double>;
 
 WML_END
 

@@ -97,6 +97,9 @@ protected:
 	Quaternion quaternions[2]; //16/16 bytes. alignement = 16
 };
 
+using DAnimatedTransformf = typename DAnimatedTransform<float>;
+using DAnimatedTransformd = typename DAnimatedTransform<double>;
+
 WML_END
 
 

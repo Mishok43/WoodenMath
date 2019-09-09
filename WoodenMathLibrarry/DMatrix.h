@@ -395,6 +395,12 @@ private:
 };
 
 template<typename T>
+inline DMatrix<T> inverse(const DMatrix<T>& m)
+{
+	static_assert("Not implemented!"); _
+}
+
+template<typename T>
 inline DMatrix<T> transpose(const DMatrix<T>& m) noexcept
 {
 	DMatrix<T> res = m;

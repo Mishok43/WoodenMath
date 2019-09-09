@@ -347,7 +347,6 @@ public:
 		return std::sqrt(dot<LSize>(*this, *this));
 	}
 
-	
 	inline bool operator==(const DVector& v2) const
 	{
 		for (uint8_t i = 0; i < Size; ++i)
@@ -511,6 +510,29 @@ inline VT maxComponent(const DVector<VT, VSize>& v)
 	return m;
 }
 
+template<typename VT, uint8_t VSize>
+inline VT ceil(const DVector<VT, VSize>& v)
+{
+	DVector<VT, VSize> r;
+	for (uint8_t i = 0; i < VSize; i++)
+	{
+		r[i] = std::ceil(v[i]);
+	}
+	return r;
+}
+
+template<typename VT, uint8_t VSize>
+inline VT floor(const DVector<VT, VSize>& v)
+{
+	DVector<VT, VSize> r;
+	for (uint8_t i = 0; i < VSize; i++)
+	{
+		r[i] = std::floor(v[i]);
+	}
+	return r;
+}
+
+
 template<typename VT, uint8_t VSize, typename std::enable_if_t<std::is_same_v<VT, float> || std::is_same_v<VT, double>>>
 inline DVector<VT, VSize> sqrt(const DVector<VT, VSize>& v)
 {
@@ -540,15 +562,18 @@ inline DVector<VT, VSize> normalize(const DVector<VT, VSize>& v)
 	return v / v.length();
 }
 template<typename VT, uint8_t VSize>
-inline DVector<VT, VSize> minVector(const DVector<VT, VSize>& v1, const DVector<VT, VSize>& v2)
+inline DVector<VT, VSize> minv(const DVector<VT, VSize>& v1, const DVector<VT, VSize>& v2)
 {
 	return _mm_min_t<T>(v1.xmm, v2.xmm);
 }
 template<typename VT, uint8_t VSize>
-inline DVector<VT, VSize> maxVector(const DVector<VT, VSize>& v1, const DVector<VT, VSize>& v2)
+inline DVector<VT, VSize> maxv(const DVector<VT, VSize>& v1, const DVector<VT, VSize>& v2)
 {
 	return _mm_max_t<T>(v1.xmm, v2.xmm);
 }
+
+
+
 template<typename VT, uint8_t VSize>
 inline void makeBasisByVector(const DVector<VT, VSize>& v1, DVector<VT, VSize>& v2, DVector<VT, VSize>& v3)
 {

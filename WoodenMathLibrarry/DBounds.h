@@ -25,18 +25,18 @@ public:
 	}
 
 	explicit DBounds(const DBounds& b, const point_type& p) :
-		pMin(minVector(b.pMin, p)),
-		pMax(maxVector(b.pMax, p))
+		pMin(minv(b.pMin, p)),
+		pMax(maxv(b.pMax, p))
 	{}
 
 	explicit DBounds(const DBounds& b0, const DBounds& b1) :
-		pMin(minVector(b0.pMin, b1.pMin)),
-		pMax(maxVector(b0.pMax, b1.pMax)),
+		pMin(minv(b0.pMin, b1.pMin)),
+		pMax(maxv(b0.pMax, b1.pMax)),
 	{}
 
 	DBounds(const point_type& p1, const point_type& p2):
-		pMin(minVector(p1, p2)),
-		pMax(maxVector(p1, p2))
+		pMin(minv(p1, p2)),
+		pMax(maxv(p1, p2))
 	{}
 
 	DBounds(point_type pMin, point_type pMax, std::true_type&& p1IsMinp2IsMax) :
@@ -228,6 +228,19 @@ public:
 	}
 };
 
+
+template<typename lT, typename Func>
+void for_each(const DBounds<lT, 2>& bounds, Func&& f)
+{
+	DPoint<lT, 2> diagonal = bounds.diagonal();
+	for (uint32_t i = 0; i <= diagonal.x(); i++)
+	{
+		for (uint32_t j = 0; j <= diagonal.y(); j++)
+		{
+			f(bounds.pMin + DPoint<lT, 2>(i, j), DPoint<lT, 2>(i, j), i*(diagonal.x()+1) + j);
+		}
+	}
+}
 
 using DBounds2u = typename DBounds<uint32_t, 2>;
 using DBounds2i = typename DBounds<int32_t, 2>;

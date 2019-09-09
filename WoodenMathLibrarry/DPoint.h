@@ -74,8 +74,10 @@ public:
 };
 
 using DPoint3f = typename DPoint<float, 3>;
+using DPoint3i = typename DPoint<int, 3>;
 using DPoint3d = typename DPoint<double, 3>;
 using DPoint2f = typename DPoint<float, 2>;
+using DPoint2i = typename DPoint<int, 2>;
 using DPoint2d = typename DPoint<double, 2>;
 
 WML_END
