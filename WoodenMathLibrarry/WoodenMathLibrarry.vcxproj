@@ -166,6 +166,7 @@
     <ClInclude Include="targetver.h" />
     <ClInclude Include="DVector.h" />
     <ClInclude Include="TypedSSE.h" />
+    <ClInclude Include="Utils.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="dllmain.cpp" />
