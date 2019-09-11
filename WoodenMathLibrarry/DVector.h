@@ -532,6 +532,13 @@ inline VT floor(const DVector<VT, VSize>& v)
 	return r;
 }
 
+template<typename VT, uint8_t VSize>
+inline DVector<VT, VSize> reflect(const DVector<VT, VSize>& wo, const DVector<VT, VSize>& n)
+{
+	return -wo + 2 * dot(wo, n)*n;
+}
+
+
 
 template<typename VT, uint8_t VSize, typename std::enable_if_t<std::is_same_v<VT, float> || std::is_same_v<VT, double>>>
 inline DVector<VT, VSize> sqrt(const DVector<VT, VSize>& v)

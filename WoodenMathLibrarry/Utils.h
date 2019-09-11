@@ -3,10 +3,12 @@
 #include "DVector.h"
 
 WML_BEGIN
-float lerp(float a, float b, float t)
+template<typename T>
+float lerp(T a, T b, float t)
 {
 	return a * (1.0 - t) + b * t;
 }
+
 
 float clamp(float t, float a, float b)
 {

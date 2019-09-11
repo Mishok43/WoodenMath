@@ -45,6 +45,54 @@ public:
 	// if double - every row = Column(i)
 	__mT xmm[Size];
 
+
+
+	template<typename T2>
+	DMatrix(const DVector<T2, 3>& c0, const DVector<T2, 3>& c1, const DVector<T2, 3>& c2)
+	{
+		if constexpr (std::is_same_v<T2, double>)
+		{
+			xmm[0] = c0.xmm;
+			xmm[1] = c1.xmm;
+			xmm[2] = c2.xmm;
+			xmm[3] = _mm_setr_t<T>(0, 0, 0, 1);
+
+		}
+		else
+		{
+			std::memcpy(&xmm[0], &c0.xmm, 16);
+			std::memcpy(((char*)&xmm[0])+16, &c1.xmm, 16);
+			xmm[3] = _mm_setr_t<T>(c2.x(), c2.y(), c2.z(), c2.w(), 0, 0, 0, 1);
+		}
+	}
+
+	template<typename T2>
+	DMatrix(const DVector<T2, 4>& c0, const DVector<T2, 4>& c1, const DVector<T2, 4>& c2, const DVector<T2, 4>& c3)
+	{
+		if constexpr (std::is_same_v<T2, double>)
+		{
+			xmm[0] = c0.xmm;
+			xmm[1] = c1.xmm;
+			xmm[2] = c2.xmm;
+			xmm[3] = c3.xmm;
+		}
+		else
+		{
+			std::memcpy(&xmm[0], &c0.xmm, 16);
+			std::memcpy(((char*)&xmm[0]) + 16, &c1.xmm, 16);
+			std::memcpy(&xmm[1], &c2.xmm, 16);
+			std::memcpy(((char*)&xmm[1]) + 16, &c3.xmm, 16);
+		}
+	}
+
+	DMatrix(const DVector4f& c0, const DVector4f& c1, const DVector4f& c2, const DVector4f& c3)
+	{
+		xmm[0] = c0.xmm;
+		xmm[1] = c1.xmm;
+		xmm[2] = c2.xmm;
+		xmm[3] = c3.xmm;
+	}
+
 	DMatrix(T m00, T m01, T m02, T m03,
 			T m10, T m11, T m12, T m13,
 			T m20, T m21, T m22, T m23,
