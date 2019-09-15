@@ -540,7 +540,7 @@ inline DVector<VT, VSize> reflect(const DVector<VT, VSize>& wo, const DVector<VT
 
 
 
-template<typename VT, uint8_t VSize, typename std::enable_if_t<std::is_same_v<VT, float> || std::is_same_v<VT, double>>>
+template<typename VT, uint8_t VSize>
 inline DVector<VT, VSize> sqrt(const DVector<VT, VSize>& v)
 {
 	return _mm_sqrt_t(v);

@@ -3,6 +3,7 @@
 #include "DVector.h"
 
 WML_BEGIN
+
 template<typename T>
 float lerp(T a, T b, float t)
 {
@@ -26,6 +27,26 @@ float clamp(float t, float a, float b)
 	}
 }
 
+template <typename Predicate> 
+int findInterval(int size, const Predicate &pred)
+{
+	int first = 0, len = size;
+	while (len > 0)
+	{
+		int half = len >> 1, middle = first + half;
+		
+		if (pred(middle))
+		{
+			first = middle + 1;
+			len -= half + 1;
+		}
+		else
+		{
+			len = half;
+		}
+	}
+	return clamp(first - 1, 0, size - 2);
+}
 
 inline float cosTheta(const DVector3f& w)
 {
@@ -111,7 +132,6 @@ inline float sphericalPhi(const DVector3f& v)
 	float p = std::atan2(v.y(), v.x());
 	return (p < 0) ? (p + 2 * PI) : p;
 }
-
 
 
 
