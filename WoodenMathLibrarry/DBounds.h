@@ -1,5 +1,6 @@
 #pragma once
 #include "stdafx.h"
+#include <limits>
 #include "DVector.h"
 #include "DPoint.h"
 #include "DRay.h"

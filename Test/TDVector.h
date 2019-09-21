@@ -8,14 +8,18 @@
 using namespace wml;
 
 
+
 namespace
 {
-	using VecT = typename DNormal3f;
+	using VecT = typename DPoint3f;
 
 	TEST(VectorF, Init)
 	{
 		VecT v;
 		ASSERT_VFLOAT3_EQ(v, 0.0f, 0.0f, 0.0f);
+
+		v = VecT(1.0f);
+		ASSERT_VFLOAT3_EQ(v, 1.0f, 1.0f, 1.0f);
 
 		v = VecT(1.0f, 2.0f, 3.0f);
 		ASSERT_VFLOAT3_EQ(v, 1.0f, 2.0f, 3.0f);

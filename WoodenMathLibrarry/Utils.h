@@ -65,7 +65,7 @@ inline float absCosTheta(const DVector3f& w)
 
 inline float sin2Theta(const DVector3f& w)
 {
-	return std::max(0.0f, 1.0f - cos2Theta(w));
+	return max(0.0f, 1.0f - cos2Theta(w));
 }
 
 inline float sinTheta(const DVector3f& w)

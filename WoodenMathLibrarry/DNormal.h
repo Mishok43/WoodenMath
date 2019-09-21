@@ -15,11 +15,17 @@ public:
 
 
 	template<TTNumbrEqual(Size, 3)>
-	DNormal(T x=0, T y=0, T z=0):
+	DNormal(T x, T y, T z):
 		base(x, y, z)
 	{
 	}
-	
+	DNormal(T broadcastValue = 0.0f) :
+		base(broadcastValue)
+	{
+		this->insert(3, (T)0);
+
+	}
+
 
 	template<TTNumbrEqual(Size, 3)>
 	DNormal(const DVector<T, Size>& v)
@@ -41,7 +47,7 @@ public:
 	}	
 
 	template<TTNumbrEqual(Size, 2)>
-	DNormal(T x=0, T y=0) :
+	DNormal(T x, T y) :
 		base(x, y)
 	{}
 	

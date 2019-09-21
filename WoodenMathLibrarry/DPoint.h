@@ -28,10 +28,15 @@ public:
 		return *this;
 	}
 
+	DPoint(T broadcastValue=0.0f) :
+		base(broadcastValue)
+	{
+		this->insert(3, (T)1);
 
+	}
 
 	template<TTNumbrEqual(Size, 3)>
-	DPoint(T x=0, T y=0, T z=0) :
+	DPoint(T x, T y, T z) :
 		base(x, y, z)
 	{
 		this->insert(3, (T)1);

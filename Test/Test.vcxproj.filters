@@ -24,6 +24,9 @@
     <ClInclude Include="TDQuaternion.h">
       <Filter>Source Files</Filter>
     </ClInclude>
+    <ClInclude Include="TDRay.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="pch.cpp">

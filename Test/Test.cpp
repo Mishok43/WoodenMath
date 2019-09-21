@@ -5,6 +5,7 @@
 #include "TDMatrix.h"
 #include "TDVector.h"
 #include "TDQuaternion.h"
+#include "TDRay.h"
 #include <iostream>
 
 
