@@ -2,34 +2,38 @@
 #pragma once
 #include "pch.h"
 #include "WoodenMathLibrarry/DVector.h"
+#include "WoodenMathLibrarry/DPoint.h"
+#include "WoodenMathLibrarry/DNormal.h"
 
 using namespace wml;
 
 
 namespace
 {
+	using VecT = typename DNormal3f;
+
 	TEST(VectorF, Init)
 	{
-		DVector3f v;
+		VecT v;
 		ASSERT_VFLOAT3_EQ(v, 0.0f, 0.0f, 0.0f);
 
-		v = DVector3f(1.0f, 2.0f, 3.0f);
+		v = VecT(1.0f, 2.0f, 3.0f);
 		ASSERT_VFLOAT3_EQ(v, 1.0f, 2.0f, 3.0f);
 	}
 
 	TEST(VectorF, ConvertToInt)
 	{
-		const DVector3f v(10.0f, 12.5f, 13.1f);
+		const VecT v(10.0f, 12.5f, 13.1f);
 		DVector3i a = v;
 		ASSERT_VINT3_EQ(a, 10, 12, 13);
 	}
 
 	TEST(VectorF, Addition)
 	{
-		DVector3f v1(0.0f, 1.0f, 4.0f);
-		DVector3f v2(1.0f, 2.0f, 3.0f);
+		VecT v1(0.0f, 1.0f, 4.0f);
+		VecT v2(1.0f, 2.0f, 3.0f);
 
-		DVector3f v3 = v1 + v2;
+		VecT v3 = v1 + v2;
 
 		ASSERT_VFLOAT3_EQ(v3, 1.0f, 3.0f, 7.0f);
 		v3 += v3;
@@ -38,10 +42,10 @@ namespace
 
 	TEST(VectorF, Substraction)
 	{
-		DVector3f v1(0.0f, 1.0f, 4.0f);
-		DVector3f v2(1.0f, 2.0f, 3.0f);
+		VecT v1(0.0f, 1.0f, 4.0f);
+		VecT v2(1.0f, 2.0f, 3.0f);
 
-		DVector3f v3 = v1 - v2;
+		VecT v3 = v1 - v2;
 
 		ASSERT_VFLOAT3_EQ(v3, -1.0f, -1.0f, 1.0f);
 		v3 -= v3;
@@ -51,16 +55,16 @@ namespace
 
 	TEST(VectorF, ScalarMulti)
 	{
-		DVector3f v1(0.0f, 1.0f, 4.0f);
+		VecT v1(0.0f, 1.0f, 4.0f);
 		float s = 3.0f;
 
-		DVector3f v2 = v1*s;
+		VecT v2 = v1*s;
 		
 		ASSERT_VFLOAT3_EQ(v2, v1.x()*s, v1.y()*s, v1.z()*s);
 
 		s = 10.0f;
 		
-		DVector3f v2tmp = v2;
+		VecT v2tmp = v2;
 
 		v2 *= s;
 		ASSERT_VFLOAT3_EQ(v2, v2tmp.x()*s, v2tmp.y()*s, v2tmp.z()*s);
@@ -75,10 +79,10 @@ namespace
 
 	TEST(VectorF, PerElementMultiplication)
 	{
-		DVector3f v1(0.0f, 1.0f, 4.0f);
-		DVector3f v2(1.0f, 2.0f, 3.0f);
+		VecT v1(0.0f, 1.0f, 4.0f);
+		VecT v2(1.0f, 2.0f, 3.0f);
 
-		DVector3f v3 = v1 * v2;
+		VecT v3 = v1 * v2;
 
 		ASSERT_VFLOAT3_EQ(v3, 0.0f, 2.0f, 12.0f);
 		v3 *= v3;
@@ -87,32 +91,32 @@ namespace
 
 	TEST(VectorF, PerElementDivision)
 	{
-		DVector3f v1(0.0f, 1.0f, 4.0f);
-		DVector3f v2(1.0f, 2.0f, 3.0f);
+		VecT v1(0.0f, 1.0f, 4.0f);
+		VecT v2(1.0f, 2.0f, 3.0f);
 
-		DVector3f v3 = v1/ v2;
+		VecT v3 = v1/ v2;
 
 		ASSERT_VFLOAT3_EQ(v3, 0.0f, 1.0f/2.0f, 4.0f/3.0f);
 	}
 
 	TEST(VectorF, Normalize)
 	{
-		DVector3f v1(0.5f, 1.0f, 4.0f);
-		DVector3f vNormalize = normalize(v1);
+		VecT v1(0.5f, 1.0f, 4.0f);
+		VecT vNormalize = normalize(v1);
 		ASSERT_VFLOAT3_EQ(vNormalize, 0.12038585308576920076209076441895f, 0.2407717061715384015241815288379f, 0.9630868246861536060967261153516f);
 	}
 
 	TEST(VectorF, Length)
 	{
-		DVector3f v1(2.0f, 1.0f, 4.0f);
+		VecT v1(2.0f, 1.0f, 4.0f);
 		ASSERT_FLOAT_EQ(v1.length2(), 21.0f);
 		ASSERT_FLOAT_EQ(v1.length(), sqrt(21.0f));
 	}
 
 	TEST(VectorF, Lerp)
 	{
-		DVector3f v1(2.0f, 1.0f, 4.0f);
-		DVector3f v2(4.0f, 2.0f, 6.0f);
+		VecT v1(2.0f, 1.0f, 4.0f);
+		VecT v2(4.0f, 2.0f, 6.0f);
 		float t = 0.4f;
 		float tInv = 1.0f - t;
 
@@ -123,8 +127,8 @@ namespace
 
 	TEST(VectorF, Dot)
 	{
-		DVector3f v1(0.0f, 1.0f, 4.0f);
-		DVector3f v2(10.0f, 20.0f, 5.0f);
+		VecT v1(0.0f, 1.0f, 4.0f);
+		VecT v2(10.0f, 20.0f, 5.0f);
 
 		float dotv = dot(v1, v2);
 		ASSERT_FLOAT_EQ(dotv, v1.x()*v2.x() + v1.y()*v2.y() + v1.z()*v2.z());
@@ -132,26 +136,26 @@ namespace
 
 	TEST(VectorF, Cross)
 	{
-		DVector3f v1(1.0f, 1.0f, 4.0f);
-		DVector3f v2(10.0f, 20.0f, 5.0f);
+		VecT v1(1.0f, 1.0f, 4.0f);
+		VecT v2(10.0f, 20.0f, 5.0f);
 
-		DVector3f crossv = cross(v1, v2);
+		VecT crossv = cross(v1, v2);
 		ASSERT_VFLOAT3_EQ(crossv, -75.0f, 35.0f, 10.0f);
 	}
 
 	TEST(VectorF, Min)
 	{
-		DVector3f v1(2.0f, 1.0f, 20.0f);
+		VecT v1(2.0f, 1.0f, 20.0f);
 		ASSERT_FLOAT_EQ(minComponent(v1), 1.0f);
 
-		DVector3f v2(10.0f, 20.0f, 5.0f);
+		VecT v2(10.0f, 20.0f, 5.0f);
 		ASSERT_VFLOAT3_EQ(minv(v1, v2), 2.0f, 1.0f, 5.0f);
 	}
 
 	TEST(VectorF, Equality)
 	{
-		DVector3f v1(2.0f, 1.0f, 20.0f);
-		DVector3f v2(2.0f, 1.0f, 20.0f);
+		VecT v1(2.0f, 1.0f, 20.0f);
+		VecT v2(2.0f, 1.0f, 20.0f);
 
 		ASSERT_EQ(v1, v2);
 	}

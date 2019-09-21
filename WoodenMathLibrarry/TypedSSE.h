@@ -189,15 +189,11 @@ namespace TypedSSE
 		return _mm_loadu_si128((__m128i*)data);
 	}
 
-
 	template<>
 	inline auto _mm_loadu_t<double>(const double* data)
 	{
 		return _mm256_loadu_pd(data);
 	}
-	
-	
-
 
 	// _MM_SET1_T
 	template<typename T, typename __mT>
