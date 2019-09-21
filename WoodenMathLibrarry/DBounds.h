@@ -141,7 +141,7 @@ public:
 		return pMax - pMin;
 	}
 
-	inline T surfaceArea() const
+	inline T area() const
 	{
 		point_type d = diagonal();
 		if constexpr (VSize == 3)

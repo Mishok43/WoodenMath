@@ -11,6 +11,7 @@ class DAnimatedTransform
 	using Vector = typename DVector<T, 3>;
 	using Quaternion = typename DQuaternion<T>;
 public:
+
 	DAnimatedTransform(Vector transition0, Vector scale0, Quaternion quaternion0, 
 					   Vector transition1, Vector scale1, Quaternion quaternion1)
 	{

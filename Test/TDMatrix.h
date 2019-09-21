@@ -90,7 +90,7 @@ namespace
 		m1[0][0] = 4.0f;
 		m1[2][1] = 10.0f;
 
-		m1 = DMatrixf::transpose(m1);
+		m1 = transpose(m1);
 		ASSERT_MATRIX_EQ(m1,
 						 4.0, 0.0, 0.0, 0.0,
 						 0.0, 1.0, 0.0, 0.0,

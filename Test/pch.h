@@ -22,6 +22,14 @@
 //}while(false);
 
 
+
+#define ASSERT_VINT3_EQ(v1, v2x, v2y, v2z) do{\
+	ASSERT_EQ(v1.x(), v2x);\
+	ASSERT_EQ(v1.y(), v2y);\
+	ASSERT_EQ(v1.z(), v2z);\
+}while(false);
+
+
 #define ASSERT_VFLOAT3_EQ(v1, v2x, v2y, v2z) do{\
 	ASSERT_FLOAT_EQ(v1.x(), v2x);\
 	ASSERT_FLOAT_EQ(v1.y(), v2y);\

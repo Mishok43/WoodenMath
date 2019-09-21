@@ -17,6 +17,13 @@ namespace
 		ASSERT_VFLOAT3_EQ(v, 1.0f, 2.0f, 3.0f);
 	}
 
+	TEST(VectorF, ConvertToInt)
+	{
+		const DVector3f v(10.0f, 12.5f, 13.1f);
+		DVector3i a = v;
+		ASSERT_VINT3_EQ(a, 10, 12, 13);
+	}
+
 	TEST(VectorF, Addition)
 	{
 		DVector3f v1(0.0f, 1.0f, 4.0f);
@@ -91,7 +98,7 @@ namespace
 	TEST(VectorF, Normalize)
 	{
 		DVector3f v1(0.5f, 1.0f, 4.0f);
-		DVector3f vNormalize = DVector3f::normalize(v1);
+		DVector3f vNormalize = normalize(v1);
 		ASSERT_VFLOAT3_EQ(vNormalize, 0.12038585308576920076209076441895f, 0.2407717061715384015241815288379f, 0.9630868246861536060967261153516f);
 	}
 
@@ -109,7 +116,7 @@ namespace
 		float t = 0.4f;
 		float tInv = 1.0f - t;
 
-		ASSERT_VFLOAT3_EQ(DVector3f::lerp(v1, v2, t), tInv*v1.x() + t * v2.x(),
+		ASSERT_VFLOAT3_EQ(lerp(v1, v2, t), tInv*v1.x() + t * v2.x(),
 						  tInv*v1.y() + t * v2.y(), tInv*v1.z() + t * v2.z());
 	}
 
@@ -119,8 +126,8 @@ namespace
 		DVector3f v1(0.0f, 1.0f, 4.0f);
 		DVector3f v2(10.0f, 20.0f, 5.0f);
 
-		float dot = DVector3f::dot(v1, v2);
-		ASSERT_FLOAT_EQ(dot, v1.x()*v2.x() + v1.y()*v2.y() + v1.z()*v2.z());
+		float dotv = dot(v1, v2);
+		ASSERT_FLOAT_EQ(dotv, v1.x()*v2.x() + v1.y()*v2.y() + v1.z()*v2.z());
 	}
 
 	TEST(VectorF, Cross)
@@ -128,17 +135,17 @@ namespace
 		DVector3f v1(1.0f, 1.0f, 4.0f);
 		DVector3f v2(10.0f, 20.0f, 5.0f);
 
-		DVector3f cross = DVector3f::cross(v1, v2);
-		ASSERT_VFLOAT3_EQ(cross, -75.0f, 35.0f, 10.0f);
+		DVector3f crossv = cross(v1, v2);
+		ASSERT_VFLOAT3_EQ(crossv, -75.0f, 35.0f, 10.0f);
 	}
 
 	TEST(VectorF, Min)
 	{
 		DVector3f v1(2.0f, 1.0f, 20.0f);
-		ASSERT_FLOAT_EQ(v1.minComponent(), 1.0f);
+		ASSERT_FLOAT_EQ(minComponent(v1), 1.0f);
 
 		DVector3f v2(10.0f, 20.0f, 5.0f);
-		ASSERT_VFLOAT3_EQ(DVector3f::minVector(v1, v2), 2.0f, 1.0f, 5.0f);
+		ASSERT_VFLOAT3_EQ(minv(v1, v2), 2.0f, 1.0f, 5.0f);
 	}
 
 	TEST(VectorF, Equality)

@@ -105,7 +105,7 @@ inline float sin2Phi(const DVector3f &w)
 }
 
 
-inline DVector3f fromSphericalToCasterian(float sinTheta,
+inline DVector3f sphericalToCasterian(float sinTheta,
 									float cosTheta,
 									float phi)
 {
@@ -115,10 +115,11 @@ inline DVector3f fromSphericalToCasterian(float sinTheta,
 }
 
 
-inline DVector3f fromSphericalToCasterian(float sinTheta, float cosTheta, float phi,
+
+inline DVector3f sphericalToCasterian(float sinTheta, float cosTheta, float phi,
 										  const DVector3f& x, const DVector3f& y, const DVector3f& z)
 {
-	DVector3f basis = fromSphericalToCasterian(sinTheta, cosTheta, phi);
+	DVector3f basis = sphericalToCasterian(sinTheta, cosTheta, phi);
 	return x * basis.x() + y * basis.y() + z * basis.z();
 }
 

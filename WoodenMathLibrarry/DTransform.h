@@ -214,14 +214,14 @@ public:
 		return t;
 	}
 
-	DTransform makeOrthographic(float zNear, float zFar)
+	static DTransform makeOrthographic(float zNear, float zFar)
 	{
 		DTransform r = makeScale(1, 1, 1 / (zFar - zNear));
 		r.makeTranslate(DVector3f(0.0, 0.0, -zNear));
 		return r;
 	}
 
-	DTransform makePerspective(float fov, float n, float f)
+	static DTransform makePerspective(float fov, float n, float f)
 	{
 		DMatrixf perps = {
 			1.0, 0.0, 0.0, 0.0,
@@ -230,7 +230,10 @@ public:
 			0.0, 0.0, -f * n(f - n), 1.0 };
 
 		float invTanAng = 1.0 / std::tan(radians(fov)/2);
-		return DTransform(std::move(perps))*makeScale(DVector3f(invTanAng, invTanAng, 1.0));
+		perps *= makeScale(DVector3f(invTanAng, invTanAng, 1.0));
+
+		DMatrixf perpsInv = inverse(perps);
+		return DTransform(std::move(perps), std::move(perpsInv));
 	}
 
 	static DTransform makeScale(const DVector<T, 3>& v)
@@ -327,6 +330,15 @@ static DTransform<T> inverse(const DTransform<T>& transform)
 {
 	return DTransform(transform.mInv(), transform.m());
 }
+
+template<typename T>
+inline DTransform<T> makeTransform(const DQuaternion<T>& q)
+{
+	DMatrix<T> m = makeMatrix(q);
+	DMatrix<T> mInv = transpose(m);
+	return DTransform<T>(std::move(m), std::move(mInv));
+}
+
 
 using DTransformf = typename DTransform<float>;
 using DTransformd = typename DTransform<double>;

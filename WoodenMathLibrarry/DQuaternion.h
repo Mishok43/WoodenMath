@@ -100,9 +100,9 @@ protected:
 		T w0 = q0.getRealPart();	
 		T w1 = q1.getRealPart();
 
-		DVector<T, 4> r = DVector<T, 4>::cross(q0, q1);
-		r = DVector<T, 4>::mAdd(q1, w0, r);
-		r = DVector<T, 4>::mAdd(q0, w1, r);
+		DVector<T, 4> r = cross(q0, q1);
+		r = mad(q1, w0, r);
+		r = mad(q0, w1, r);
 		
 		DVector<T, 4> wV = static_cast<DVector<T, 4>>(q0)*static_cast<DVector<T, 4>>(q1);
 		T w = wV.w() - wV.x() + wV.y() + wV.z();
@@ -117,34 +117,38 @@ protected:
 	{
 		T w = u.getRealPart();
 		// 2w(uXv)
-		DVector<T, 4> r3 = DVector<T, 4>::cross(u, v)*(2*w);
+		DVector<T, 4> r3 = cross(u, v)*(2*w);
 		// 2(u*v)u + 2w(uXv)
-		DVector<T, 4> r2 = DVector<T, 4>::mAdd(u, 2.0f*DVector<T, 4>::dot<3>(u, v), r3);
+		DVector<T, 4> r2 = mad(u, 2.0f*dot<3>(u, v), r3);
 
-		DVector<T, 4> u2 = static_cast<DVector<T, 4>>(u)*static_cast<DVector<T, 4>>(u);
+		DVector<T, 4> u2 = (DVector<T, 4>)(u)*(DVector<T, 4>)(u);
 		// (w^2-u*u)v + 2(u*v)u + 2w(uXv)
-		res = DVector<T, 4>::mAdd(v, u2.w()-(u2.x()+u2.y()+u2.z()), r2);
+		res = mad(v, u2.w()-(u2.x()+u2.y()+u2.z()), r2);
 	}
 };
 
 
-template<typename T> inline T dot(const DQuaternion<T>& q0, const DQuaternion<T>& q1)
+template<typename T>
+inline T dot(const DQuaternion<T>& q0, const DQuaternion<T>& q1)
 {
 	DVector<T, 4> wV = static_cast<DVector<T, 4>>(q0)*static_cast<DVector<T, 4>>(q1);
 	return wV.w() + wV.x() + wV.y() + wV.z();
 }
 
-template<typename T> inline T length(const DQuaternion<T>& q)
+template<typename T>
+inline T length(const DQuaternion<T>& q)
 {
 	return std::sqrt(dot(q, q));
 }
 
-template<typename T> inline DQuaternion<T> normalize(const DQuaternion<T>& q)
+template<typename T>
+inline DQuaternion<T> normalize(const DQuaternion<T>& q)
 {
 	return q / length(q);
 }
 
-template<typename T> inline DMatrix<T> makeMatrix(const DQuaternion<T>& q)
+template<typename T> 
+inline DMatrix<T> makeMatrix(const DQuaternion<T>& q)
 {
 	DVector<T, 4> q2t = static_cast<DVector<T, 4>>(q)*static_cast<DVector<T, 4>>(q);
 	q2t = q2t.permute<0b10000001>(); // q2^2 q1^2 q1^2 q3^2 
@@ -178,14 +182,8 @@ template<typename T> inline DMatrix<T> makeMatrix(const DQuaternion<T>& q)
 		);
 }
 
-template<typename T> inline DTransform<T> makeTransform(const DQuaternion<T>& q)
-{
-	DMatrix<T> m = makeMatrix(q);
-	DMatrix<T> mInv = transpose(m);
-	return DTransform<T>(std::move(m), std::move(mInv));
-}
-
-template<typename T> inline DQuaternion<T> slerp(const DQuaternion<T>& q0, const DQuaternion<T>& q1, T t)
+template<typename T> 
+inline DQuaternion<T> slerp(const DQuaternion<T>& q0, const DQuaternion<T>& q1, T t)
 {
 	assert(t >= 0.0 && t <= 1.0);
 	T angle = acos(dot(q0, q1));

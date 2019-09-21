@@ -67,7 +67,7 @@ float coneUniformPDF(float cosThetaMax)
 {
 	return 1 / (2 * PI*(1 - cosThetaMax));
 }
-DVector3f UniformSampleCone(const DPoint2f &u, float cosThetaMax)
+DVector3f sampleConeUniform(const DPoint2f &u, float cosThetaMax)
 {
 	float cosTheta = ((float)1 - u[0]) + u[0] * cosThetaMax;
 	float sinTheta = std::sqrt((float)1 - cosTheta * cosTheta);

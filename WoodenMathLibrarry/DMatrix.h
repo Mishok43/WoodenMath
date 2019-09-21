@@ -41,6 +41,8 @@ template<typename T, typename __mT = __m256_t<T>, uint8_t Size=dmatrix_size_v<T>
 class alignas(alignment) DMatrix
 {
 public:
+	using mT = typename __mT;
+	static constexpr uint8_t SizeXMM = Size;
 	// if float/int32_t/uint32_t - every row = Column(i)|Column(i+1)
 	// if double - every row = Column(i)
 	__mT xmm[Size];
@@ -216,10 +218,18 @@ public:
 		setScale(scale.x(), scale.y(), scale.z());
 	}
 
-	inline void setScale(float x, float y, float z)
+	template<typename T2>
+	inline void setScale(T2 x, T2 y, T2 z)
 	{
-		(*this)[0][0] = x; (*this)[1][1] = y; (*this)[3][3] = z;
+		(*this)[0][0] = x; (*this)[1][1] = y; (*this)[2][2] = z;
 	}
+
+	template<typename T2>
+	inline DVector<T2, 3> getScale() const
+	{
+		return DVector<T2, 3>((*this)[0][0], (*this)[1][1], (*this)[2][2]);
+	}
+
 
 	inline const T* operator[](uint32_t i) const
 	{
@@ -445,7 +455,7 @@ private:
 template<typename T>
 inline DMatrix<T> inverse(const DMatrix<T>& m)
 {
-	static_assert("Not implemented!"); _
+	static_assert("Not implemented!"); 
 }
 
 template<typename T>
@@ -454,9 +464,9 @@ inline DMatrix<T> transpose(const DMatrix<T>& m) noexcept
 	DMatrix<T> res = m;
 
 	// pre-store data 
-	for (size_t i = 0; i < Size; ++i)
+	for (size_t i = 0; i < res.SizeXMM; ++i)
 	{
-		_mm_storea_t<T, __mT>((T*)(&res.xmm[i]), res.xmm[i]);
+		_mm_storea_t<T, DMatrix<T>::mT>((T*)(&res.xmm[i]), res.xmm[i]);
 	}
 
 	for (uint8_t i = 0; i < 4; ++i)

@@ -38,7 +38,7 @@ namespace
 
 		DQuaternionf q3 = q0 * q2;
 
-		DMatrixf m = q3.makeMatrix(q3);
+		DMatrixf m = makeMatrix(q3);
 		ASSERT_MATRIX_EQ(m,
 						1.0000000, 0.0000000, 0.0000000, 0.0,
 						0.0000000, -0.7062616, -0.7079509, 0.0,

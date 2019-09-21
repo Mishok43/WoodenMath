@@ -219,6 +219,19 @@ namespace TypedSSE
 		return _mm_set1_ps(scalar);
 	}
 
+
+	template<>
+	inline __m128i _mm_set1_t<int32_t, __m128i>(int32_t scalar)
+	{
+		return _mm_set1_epi32(scalar);
+	}
+
+	template<>
+	inline __m128i _mm_set1_t<uint32_t, __m128i>(uint32_t scalar)
+	{
+		return _mm_set1_epi32(scalar);
+	}
+
 	template<>
 	inline __m256 _mm_set1_t<float, __m256>(float scalar)
 	{
