@@ -10,43 +10,43 @@ template<typename T, uint8_t VSize, uint8_t alignment = sse_alignment_size_v<__m
 class alignas(alignment) DBounds
 {
 public:
-	using point_type = typename DPoint<T, VSize>;
+	using PointT = typename DPoint<T, VSize>;
 
-	point_type pMin, pMax;
+	PointT pMin, pMax;
 
 	DBounds() :
-		pMax(std::numeric_limits<T>::lowest()),
-		pMin(std::numeric_limits<T>::max())
+		pMax(PointT(std::numeric_limits<T>::lowest())),
+		pMin(PointT(std::numeric_limits<T>::infinity()))
 	{
 	}
 
-	explicit DBounds(const point_type& p) :
+	explicit DBounds(const PointT& p) :
 		pMin(p), pMax(p)
 	{
 	}
 
-	explicit DBounds(const DBounds& b, const point_type& p) :
+	explicit DBounds(const DBounds& b, const PointT& p) :
 		pMin(minv(b.pMin, p)),
 		pMax(maxv(b.pMax, p))
 	{}
 
 	explicit DBounds(const DBounds& b0, const DBounds& b1) :
 		pMin(minv(b0.pMin, b1.pMin)),
-		pMax(maxv(b0.pMax, b1.pMax)),
+		pMax(maxv(b0.pMax, b1.pMax))
 	{}
 
-	DBounds(const point_type& p1, const point_type& p2):
+	DBounds(const PointT& p1, const PointT& p2):
 		pMin(minv(p1, p2)),
 		pMax(maxv(p1, p2))
 	{}
 
-	DBounds(point_type pMin, point_type pMax, std::true_type&& p1IsMinp2IsMax) :
-		pMin(std::move(p1)),
-		pMax(std::move(p2))
+	DBounds(PointT pMin, PointT pMax, std::true_type&& p1IsMinp2IsMax) :
+		pMin(std::move(pMin)),
+		pMax(std::move(pMax))
 	{}
 
-	inline const point_type& operator[](uint8_t i) const{ return *(&pMin+i); }
-	inline point_type& operator[](uint8_t i){ return *(&pMin+i); };
+	inline const PointT& operator[](uint8_t i) const{ return *(&pMin+i); }
+	inline PointT& operator[](uint8_t i){ return *(&pMin+i); };
 
 	bool intersect(const DRayf& ray, const float tNear, const float tFar) const
 	{
@@ -105,21 +105,21 @@ public:
 		return (tMin < ray.tMax) && (tMax > 0);
 	}
 
-	point_type corner(uint8_t i = 0) const
+	PointT corner(uint8_t i = 0) const
 	{
-		return point_type((*this)[(i & 1)].x(),
+		return PointT((*this)[(i & 1)].x(),
 						   (*this)[(i & 2) >> 1].y(),
 						   (*this)[(i & 4) >> 2].z());
 	}
 
-	bool inside(const point_type& p) const 
+	bool inside(const PointT& p) const 
 	{
 		return p.x() >= pMin.x() && p.x() <= pMax.x() &&
 			p.y() >= pMin.y() && p.y() <= pMax.y() &&
 			p.z() >= pMin.z() && p.z() <= pMax.z();
 	}
 
-	bool insideExclusive(const point_type& p) const
+	bool insideExclusive(const PointT& p) const
 	{
 		return p.x() > pMin.x() && p.x() < pMax.x() &&
 			p.y() > pMin.y() && p.y() < pMax.y() &&
@@ -128,28 +128,28 @@ public:
 
 	inline void expand(T delta)
 	{
-		expand(point_type(delta));
+		expand(PointT(delta));
 	}
 
-	inline void expand(const point_type& delta)
+	inline void expand(const PointT& delta)
 	{
 		pMin -= delta;
 		pMax += delta;
 	}
 
-	inline point_type diagonal() const
+	inline PointT diagonal() const
 	{
 		return pMax - pMin;
 	}
 
 	inline T area() const
 	{
-		point_type d = diagonal();
+		PointT d = diagonal();
 		if constexpr (VSize == 3)
 		{
 			// x*y + y*z+z*x
-			point_type d2 = d.permute<0b11001001>(); // y z x w
-			return 2*point_type::dot<3>(d, d2);
+			PointT d2 = d.permute<0b11001001>(); // y z x w
+			return 2*PointT::dot<3>(d, d2);
 		}
 		else
 		{
@@ -162,13 +162,13 @@ public:
 	{
 		static_assert(VSize == 3);
 
-		point_type d = diagonal();
+		PointT d = diagonal();
 		return d.x()*d.y()*d.z();
 	}
 
 	uint8_t maxExtent() const
 	{
-		point_type d = diagonal();
+		PointT d = diagonal();
 		if constexpr (VSize == 3)
 		{
 			if (d.x() > d.y() && d.x() > d.z())
@@ -190,18 +190,18 @@ public:
 		}
 	}
 
-	inline point_type lerp(const point_type& t) const
+	inline PointT lerp(const PointT& t) const
 	{
-		return point_type.lerp(pMin, pMax, t);
+		return PointT.lerp(pMin, pMax, t);
 	}
 
-	inline point_type getLerpFactors(const point_type& v) const
+	inline PointT getLerpFactors(const PointT& v) const
 	{
-		point_type o = v - pMin;
+		PointT o = v - pMin;
 		return o / diagonal();
 	}
 
-	inline boundingSphere(point_type& center, T& radius) const
+	inline void boundingSphere(PointT& center, T& radius) const
 	{
 		center = (pMin + pMax) / 2;
 		radius = (pMax - center).length();
@@ -211,17 +211,15 @@ public:
 	template<typename lT, uint8_t lVSize>
 	static DBounds<lT, lVSize> intersect(const DBounds<lT, lVSize>& b1, const DBounds<lT, lVSize>& b2)
 	{
-		using lvector_type = typename DVector<lT, lVSize>;
 		return DBounds<lT, lVSize>(
-			lvector_type::maxVector(b1.pMin, b2.pMin),
-			lvector_type::minVector(b1.pMax, b2.pMax),
+			maxv(b1.pMin, b2.pMin),
+			minv(b1.pMax, b2.pMax),
 			std::true_type());
 	}
 
 	template<typename lT, uint8_t lVSize>
 	static bool overlaps(const DBounds<lT, lVSize>& b1, const DBounds<lT, lVSize>& b2)
 	{
-		using lvector_type = typename DVector<lT, lVSize>;
 		bool x = (b1.pMax.x() >= b2.pMin.x()) && (b1.pMin.x() <= b2.pMax.x());
 		bool y = (b1.pMax.y() >= b2.pMin.y()) && (b1.pMin.y() <= b2.pMax.y());
 		bool z = (b1.pMax.z() >= b2.pMin.z()) && (b1.pMin.z() <= b2.pMax.z());

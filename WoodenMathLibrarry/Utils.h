@@ -4,6 +4,13 @@
 
 WML_BEGIN
 
+#define PI 3.1415926535897932384626433832795028841971693993751058209749445923078164062
+
+float radians(float degree)
+{
+	return 0.01745329252*degree;
+}
+
 template<typename T>
 float lerp(T a, T b, float t)
 {

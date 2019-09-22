@@ -670,7 +670,7 @@ inline bool isSameHemisphere(const DVector<VT, VSize> &w, const DVector<VT, VSiz
 }
 
 template<typename VT, uint8_t VSize>
-void permute(const DVector<VT, VSize> &v, const DVector<uint8_t, VSize>& indices)
+DVector<VT, VSize> permute(const DVector<VT, VSize> &v, const DVector<uint32_t, VSize>& indices)
 {
 	return DVector<VT, VSize>::permute(v, indices);
 }

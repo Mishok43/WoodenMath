@@ -224,10 +224,10 @@ public:
 		(*this)[0][0] = x; (*this)[1][1] = y; (*this)[2][2] = z;
 	}
 
-	template<typename T2>
-	inline DVector<T2, 3> getScale() const
+
+	inline DVector<T, 3> getScale() const
 	{
-		return DVector<T2, 3>((*this)[0][0], (*this)[1][1], (*this)[2][2]);
+		return DVector<T, 3>((*this)[0][0], (*this)[1][1], (*this)[2][2]);
 	}
 
 

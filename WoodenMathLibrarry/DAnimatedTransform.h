@@ -10,6 +10,7 @@ class DAnimatedTransform
 {
 	using Vector = typename DVector<T, 3>;
 	using Quaternion = typename DQuaternion<T>;
+	using Transform = typename DTransform<T>;
 public:
 
 	DAnimatedTransform(Vector transition0, Vector scale0, Quaternion quaternion0, 
@@ -20,15 +21,15 @@ public:
 	}
 
 
-	DTransform interpolate(float time) const
+	Transform interpolate(float time) const
 	{
-		return DTransform(
+		return Transform(
 			Vector::lerp(transitions[0], transitions[1], time), 
 			Vector::lerp(scales[0], scales[1], time),
 			Quaternion::slerp(quaternions[0], quaternions[1], time));
 	}
 
-	DTransform interpolateSafe(float time) const
+	Transform interpolateSafe(float time) const
 	{
 		Vector trans;
 		Vector scale;
@@ -53,7 +54,7 @@ public:
 			rotation = Quaternion::slerp(quaternions[0], quaternions[1], time);
 		}
 
-		return DTransform(trans, scale, rotation);
+		return DTransform<T>(trans, scale, rotation);
 	}
 
 	
@@ -89,8 +90,8 @@ public:
 	Vector& getRotation1() { return quaternions[1]; }
 
 
-	DTransform transform0() const	{ return DTransform(transitions[0], scales[0], quaternions[0]); }
-	DTransform transform1() const { return DTransform(transitions[1], scales[1], quaternions[1]); }
+	Transform transform0() const	{ return DTransform(transitions[0], scales[0], quaternions[0]); }
+	Transform transform1() const { return DTransform(transitions[1], scales[1], quaternions[1]); }
 
 protected:
 	Vector transitions[2]; // LastElement = startTime. 12/16 bytes. alignement = 16. 

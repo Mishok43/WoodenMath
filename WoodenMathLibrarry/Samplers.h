@@ -26,7 +26,7 @@ DPoint2f sampleDistRejectionUniform()
 DVector3f sampleHemisphereUniform(const DPoint2f& u)
 {
 	float z = u[0];
-	float r = std::sqrt(std::max(0.0f, 1.0f - z * z));
+	float r = std::sqrt(max(0.0f, 1.0f - z * z));
 	float phi = 2 * PI* u[1];
 	return DVector3f(r * std::cos(phi), r * std::sin(phi), z);
 }
@@ -39,7 +39,7 @@ float uniformHemispherePDF()
 DVector3f sampleSphereUniform(const DPoint2f &u)
 {
 	float z = 1 - 2 * u[0];
-	float r = std::sqrt(std::max((float)0, (float)1 - z * z));
+	float r = std::sqrt(max((float)0, (float)1 - z * z));
 	float phi = 2 * PI * u[1];
 	return DVector3f(r * std::cos(phi), r * std::sin(phi), z);
 }
@@ -59,7 +59,7 @@ float hemisphereCosSinPDF(const float cosTheta)
 DVector3f sampleHemisphereCosSin(const DPoint2f& u)
 {
 	DPoint2f d = sampleDiskUniform(u);
-	float z = std::sqrt(std::max(0.0f, 1.0f - dot(d)));
+	float z = std::sqrt(max(0.0f, 1.0f - dot<2>(d, d)));
 	return DVector3f(d.x(), d.y(), z);
 }
 

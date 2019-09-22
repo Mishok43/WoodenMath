@@ -5,6 +5,7 @@
 #include "DQuaternion.h"
 #include "DBounds.h"
 
+
 WML_BEGIN
 
 
@@ -23,52 +24,62 @@ class alignas(alignment) DTransform
 	using Matrix = typename DMatrix<T>;
 public:
 
+	DTransform()
+	{
+		mData =  Matrix(
+			1.0, 0.0, 0.0, 0.0,
+			0.0, 1.0, 0.0, 0.0,
+			0.0, 0.0, 1.0, 0.0,
+			0.0, 0.0, 0.0, 1.0);
+		mInvData = mData;
+	}
+
 	DTransform(const Vector& trans, const Vector& scale, const Quaternion& rotation)
 	{
-		m = rotation.makeMatrix(rotation);
-		mInv = m.transpose(m);
+		mData = makeMatrix(rotation);
+		mInvData = transpose(mData);
 
-		m.setTransition(trans);
-		mInv.setTransition(-trans);
+		mData.setTransition(trans);
+		mInvData.setTransition(-trans);
 
-		m.setScale(scale);
-		mInv.setScale(Vector(1.0) / scale);
+		mData.setScale(scale);
+		mInvData.setScale(Vector(1.0) / scale);
 	}
 
-	DTransform(Matrix m)
-		m(std::move(m))
+	DTransform(Matrix _m):
+		mData(std::move(_m))
 	{
-		mInv = inverse(m);
+		mInvData = inverse(m);
 	}
 
-	DTransform(Matrix m, Matrix mInv) :
-		m(std::move(m)), mInv(std::move(mInv))
+	DTransform(Matrix _m, Matrix _mInv) :
+		mData(std::move(_m)), mInvData(std::move(_mInv))
 	{}
 
 	inline DTransform operator*(const DTransform& v) const
 	{
-		return DTransform(m*v.m, mInv*v.mInv);
+		return DTransform(mData*v.mData, mInvData*v.mInvData);
 	}
 
 
 
 	inline DTransform& operator*=(const DTransform& v)
 	{
-		m *= v.m;
-		mInv *= v.mInv;
+		mData *= v.mData;
+		mInvData *= v.mInvData;
 		return *this;
 	}
 
 	
-	inline Matrix operator()(const Matrix& m) const
+	inline Matrix operator()(const Matrix& _m) const
 	{
-		return m*mData;
+		return _m*mData;
 	}
 
 
-	inline Matrix operator()(const Matrix& m, inv_transform_type) const
+	inline Matrix operator()(const Matrix& _m, inv_transform_type) const
 	{
-		return m * mInvData;
+		return _m * mInvData;
 	}
 
 	
@@ -223,16 +234,16 @@ public:
 
 	static DTransform makePerspective(float fov, float n, float f)
 	{
-		DMatrixf perps = {
+		Matrix perps = Matrix(
 			1.0, 0.0, 0.0, 0.0,
 			0.0, 1.0, 0.0, 0.0,
-			0.0, 0.0, f / (f - n), 0.0
-			0.0, 0.0, -f * n(f - n), 1.0 };
+			0.0, 0.0, f / (f - n), 0.0,
+			0.0, 0.0, -f * n*(f - n), 1.0 );
 
 		float invTanAng = 1.0 / std::tan(radians(fov)/2);
 		perps *= makeScale(DVector3f(invTanAng, invTanAng, 1.0));
 
-		DMatrixf perpsInv = inverse(perps);
+		Matrix perpsInv = inverse(perps);
 		return DTransform(std::move(perps), std::move(perpsInv));
 	}
 

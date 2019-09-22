@@ -28,11 +28,23 @@ public:
 		return *this;
 	}
 
+
 	DPoint(T broadcastValue=0.0f) :
 		base(broadcastValue)
 	{
 		this->insert(3, (T)1);
 
+	}
+
+	template<typename T2>
+	operator DPoint<T2, Size>() const
+	{
+		DPoint<T2, Size> res;
+		for (uint8_t i = 0; i < Size; i++)
+		{
+			res[i] = (T2)((*this)[i]);
+		}
+		return res;
 	}
 
 	template<TTNumbrEqual(Size, 3)>
