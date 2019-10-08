@@ -2,6 +2,7 @@
 #include "stdafx.h"
 #include "DMatrix.h"
 #include "DQuaternion.h"
+#include "DTransform.h"
 
 WML_BEGIN
 
@@ -24,9 +25,9 @@ public:
 	Transform interpolate(float time) const
 	{
 		return Transform(
-			Vector::lerp(transitions[0], transitions[1], time), 
-			Vector::lerp(scales[0], scales[1], time),
-			Quaternion::slerp(quaternions[0], quaternions[1], time));
+			lerp(transitions[0], transitions[1], time), 
+			lerp(scales[0], scales[1], time),
+			slerp(quaternions[0], quaternions[1], time));
 	}
 
 	Transform interpolateSafe(float time) const
@@ -49,12 +50,12 @@ public:
 		}
 		else
 		{
-			trans = Vector::lerp(transitions[0], transitions[1], time);
-			scale = Vector::lerp(scales[0], scales[1], time);
-			rotation = Quaternion::slerp(quaternions[0], quaternions[1], time);
+			trans = lerp(transitions[0], transitions[1], time);
+			scale = lerp(scales[0], scales[1], time);
+			rotation = slerp(quaternions[0], quaternions[1], time);
 		}
 
-		return DTransform<T>(trans, scale, rotation);
+		return Transform(trans, scale, rotation);
 	}
 
 	
@@ -90,8 +91,8 @@ public:
 	Vector& getRotation1() { return quaternions[1]; }
 
 
-	Transform transform0() const	{ return DTransform(transitions[0], scales[0], quaternions[0]); }
-	Transform transform1() const { return DTransform(transitions[1], scales[1], quaternions[1]); }
+	Transform transform0() const	{ return Transform(transitions[0], scales[0], quaternions[0]); }
+	Transform transform1() const { return Transform(transitions[1], scales[1], quaternions[1]); }
 
 protected:
 	Vector transitions[2]; // LastElement = startTime. 12/16 bytes. alignement = 16. 

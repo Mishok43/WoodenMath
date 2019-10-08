@@ -509,6 +509,11 @@ namespace TypedSSE
 		return;
 	}
 
+	template<>
+	inline auto _mm_min_t<float>(__m256 a, __m256 b)
+	{
+		return _mm256_min_ps(a, b);
+	}
 
 	template<>
 	inline auto _mm_min_t<float>(__m128 a, __m128 b)
@@ -636,13 +641,13 @@ namespace TypedSSE
 	template<>
 	inline auto _mm_mul_t<int32_t, __m128i>(__m128i a, __m128i b)
 	{
-		return _mm_mul_epi32(a, b);
+		return _mm_mullo_epi32(a, b);
 	}
 
 	template<>
 	inline auto _mm_mul_t<uint32_t, __m128i>(__m128i a, __m128i b)
 	{
-		return _mm_mul_epu32(a, b);
+		return _mm_mullo_epi32(a, b);
 	}
 
 	template<>
@@ -654,13 +659,13 @@ namespace TypedSSE
 	template<>
 	inline auto _mm_mul_t<int32_t, __m256i>(__m256i a, __m256i b)
 	{
-		return _mm256_mul_epi32(a, b);
+		return _mm256_mullo_epi32(a, b);
 	}
 
 	template<>
 	inline auto _mm_mul_t<uint32_t, __m256i>(__m256i a, __m256i b)
 	{
-		return _mm256_mul_epu32(a, b);
+		return _mm256_mullo_epi32(a, b);
 	}
 
 
@@ -719,6 +724,13 @@ namespace TypedSSE
 	}
 
 	template<>
+	inline auto _mm_div_t<float>(__m256 a, __m256 b)
+	{
+		return _mm256_div_ps(a, b);
+	}
+
+
+	template<>
 	inline auto _mm_div_t<double>(__m256d a, __m256d b)
 	{
 		return _mm256_div_pd(a, b);
@@ -748,14 +760,14 @@ namespace TypedSSE
 	template<>
 	inline auto _mm_madd_t<int32_t>(__m128i a, __m128i b, __m128i c)
 	{
-		__m128i buffer = _mm_mul_epi32(a, b);
+		__m128i buffer = _mm_mullo_epi32(a, b);
 		return _mm_add_epi32(buffer, c);
 	}
 
 	template<>
 	inline auto _mm_madd_t<uint32_t>(__m128i a, __m128i b, __m128i c)
 	{
-		__m128i buffer = _mm_mul_epu32(a, b);
+		__m128i buffer = _mm_mullo_epi32(a, b);
 		return _mm_add_epi32(buffer, c);
 	}
 	
@@ -796,7 +808,7 @@ namespace TypedSSE
 	{
 		static inline auto f(__m128i a)
 		{
-			return _mm_permute_ps(*((__m128*)(&a)), controlValue);
+			return *reinterpret_cast<__m128i*>(& _mm_permute_ps(*((__m128*)(&a)), controlValue));
 		}
 
 	};

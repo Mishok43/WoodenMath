@@ -13,8 +13,9 @@ template<typename T, uint8_t Size, typename __mT = __m_t<T, (Size+3)/4>, uint8_t
 class alignas(alignment) DVector
 {
 public:
-	__mT xmm;
+	mutable __mT xmm;
 
+	
 	DVector(T* data)
 	{
 		xmm = _mm_loadu_t(data);
@@ -24,6 +25,13 @@ public:
 	{
 		xmm = _mm_set1_t<T, __mT>(broadcastValue);
 	}
+
+	template<TTNumbrEqual(Size, 8)>
+	DVector(T m0, T m1, T m2, T m3, T m4, T m5, T m6, T m7)
+	{
+		xmm = _mm_setr_t<T>(m0, m1, m2, m3, m4, m5, m6, m7);
+	}
+
 
 	template<TTNumbrEqual(Size, 4)>
 	DVector(T x, T y, T z, T w)
@@ -43,17 +51,17 @@ public:
 		xmm = _mm_setr_t<T>(x, y, 0, 0);
 	}
 
-	DVector(const __m_t<T>& data) :
+	DVector(const __mT& data) :
 		xmm(data)
 	{
 	}
 
-	DVector( __m_t<T>&& data) :
+	DVector(__mT&& data) :
 	   xmm(std::move(data))
 	{}
 
 	template<typename T2>
-	operator DVector<T2, Size>() const
+	inline operator DVector<T2, Size>() const
 	{
 		DVector<T2, Size> res;
 		for (uint8_t i = 0; i < Size; i++)
@@ -65,9 +73,9 @@ public:
 
 
 	template<TTNumbrEqual(Size, 4)>
-	explicit DVector(const DVector<T, 3>& v, T w=0)
+	explicit DVector(const DVector<T, 3>& v, T w=0):
+		xmm(v.xmm)
 	{
-		_mm_loada_t<T>(&v.xmm);
 		insert(3, w);
 	}
 
@@ -96,67 +104,89 @@ public:
 
 
 	template<typename check = std::enable_if_t<std::is_same_v<__mT, __m128>>>
-	operator __m128() const
+	inline operator __m128() const
 	{
 		return xmm;
 	}
 
 	template<typename check = std::enable_if_t<std::is_same_v<__mT, __m128i>>>
-	operator __m128i() const
+	inline operator __m128i() const
+	{
+		return xmm;
+	}
+
+	template<typename check = std::enable_if_t<std::is_same_v<__mT, __m256>>>
+	inline operator __m256() const
 	{
 		return xmm;
 	}
 
 	template<typename check = std::enable_if_t<std::is_same_v<__mT, __m256d>>>
-	operator __m256d() const
+	inline operator __m256d() const
 	{
 		return xmm;
 	}
 
 	template<typename check = std::enable_if_t<std::is_same_v<T, float>>>
-	float* data()
+	inline float* data()
 	{
-		return xmm.m128_f32;
+		if constexpr (std::is_same_v< __mT, __m128>)
+		{
+			return xmm.m128_f32;
+
+		}
+		else
+		{
+			return xmm.m256_f32;
+		}
 	}
 
 	template<typename check = std::enable_if_t<std::is_same_v<T, double>>>
-	double* data()
+	inline double* data()
 	{
 		return xmm.m256d_f64;
 	}
 
 	template<typename check = std::enable_if_t<std::is_same_v<T, int32_t>>>
-	int32_t* data()
+	inline int32_t* data()
 	{
 		return xmm.m128i_i32;
 	}
 
 	template<typename check = std::enable_if_t<std::is_same_v<T, uint32_t>>>
-	uint32_t* data()
+	inline uint32_t* data()
 	{
 		return xmm.m128i_u32;
 	}
 
 	template<typename check = std::enable_if_t<std::is_same_v<float, T>>>
-	const float* data() const
+	inline const float* data() const
 	{
-		return xmm.m128_f32;
+		if constexpr (std::is_same_v< __mT, __m128>)
+		{
+			return xmm.m128_f32;
+
+		}
+		else
+		{
+			return xmm.m256_f32;
+		}
 	}
 
 	template<typename check = std::enable_if_t<std::is_same_v<double, T>>>
-	const double* data() const
+	inline const double* data() const
 	{
 		return xmm.m256d_f64;
 	}
 
 	template<typename check = std::enable_if_t<std::is_same_v<int32_t, T>>>
-	const int32_t* data() const
+	inline const int32_t* data() const
 	{
 		return xmm.m128i_i32;
 	}
 
 	template<typename check = std::enable_if_t<std::is_same_v<uint32_t, T>>>
-	const uint32_t* data() const
+	inline const uint32_t* data() const
 	{
 		return xmm.m128i_u32;
 	}
@@ -221,20 +251,14 @@ public:
 		return (*this);
 	}
 
-	DVector operator/(T s) const
+	inline DVector operator/(T s) const
 	{
-		static_assert(!std::is_same<int32_t, T>() &&
-					  !std::is_same<uint32_t, T>(), "Division of int types is not supported");
-
 		assert(s != 0);
 		return (*this) / DVector<T, Size>(s);
 	}
 
-	DVector& operator/=(T s)
+	inline DVector& operator/=(T s)
 	{
-		static_assert(!std::is_same<int32_t, T>() &&
-					  !std::is_same<uint32_t, T>(), "Division of int types is not supported");
-
 		assert(s != 0);
 		xmm = (*this) / DVector<T, Size>(s);
 		return *this;
@@ -242,23 +266,42 @@ public:
 
 	inline DVector operator/(const DVector& v2) const
 	{
-		static_assert(!std::is_same<int32_t, T>() &&
-					  !std::is_same<uint32_t, T>(), "Division of int types is not supported");
+		if constexpr (std::is_same_v<int32_t, T> || std::is_same_v<uint32_t, T>)
+		{
+			DVector res;
+			for (uint8_t i = 0; i < Size; i++)
+			{
+				res[i] = (*this)[i] / v2[i];
+			}
+			return res;
+		}
+		else
+		{
+			return _mm_div_t<T>(xmm, v2.xmm);
 
-		return _mm_div_t<T>(xmm, v2.xmm);
+		}
+
 	}
 
 	inline DVector& operator/=(const DVector& v2)
 	{
-		static_assert(!std::is_same<int32_t, T>() &&
-					  !std::is_same<uint32_t, T>(), "Division of int types is not supported");
+		if constexpr (std::is_same_v<int32_t, T> || std::is_same_v<uint32_t, T>)
+		{
+			for (uint8_t i = 0; i < Size; i++)
+			{
+				(*this)[i] /=  v2[i];
+			}
+		}
+		else
+		{
+			xmm = _mm_div_t<T>(xmm, v2.xmm);
+		}
 
-		xmm = _mm_div_t<T>(xmm, v2.xmm);
 		return *this;
 	}
 
 
-	DVector operator-() const
+	inline DVector operator-() const
 	{
 		return (*this)*(DVector(-1));
 	}
@@ -266,36 +309,36 @@ public:
 
 	inline T operator[](uint32_t i) const
 	{
-		assert(i < Size);
+	//	assert(i < Size);
 		return (data())[i];
 	}
 
 	inline T& operator[](uint32_t i)
 	{
-		assert(i < Size);
+		//assert(i < Size);
 		return (data())[i];
 	}
 
-	void store(T* mem) const
+	inline void store(T* mem) const
 	{
 		_mm_storea_t<T, __mT>(mem, xmm);
 	}
 	
-	void insert(uint8_t pos, T value)
+	inline void insert(uint8_t pos, T value)
 	{
 		xmm = _mm_insert_t(xmm, value, pos);
 	}
 	
-	void setX(T value) { insert(0, value); }
+	inline void setX(T value) { insert(0, value); }
 
 	template<typename check = std::enable_if_t<Size >= 2>>
-	void setY(T value) { insert(1, value); }
+	inline void setY(T value) { insert(1, value); }
 
 	template<typename check = std::enable_if_t<Size >= 3>>
-	void setZ(T value) { insert(2, value); }
+	inline void setZ(T value) { insert(2, value); }
 
 	template<typename check = std::enable_if_t<Size >= 4>>
-	void setW(T value) { insert(3, value); }
+	inline void setW(T value) { insert(3, value); }
 
 	inline T x() const
 	{
@@ -343,19 +386,24 @@ public:
 		return (*this)[3];
 	}
 
-	uint8_t size() const
+	inline uint8_t size() const
 	{
 		return Size;
 	}
 
+	void insertUnsafe(uint8_t pos, T v) const
+	{
+		xmm = _mm_insert_t(xmm, v, pos);
+	}
+
 	template<uint8_t LSize = Size>
-	T length2() const
+	inline T length2() const
 	{
 		return dot<LSize>(*this, *this);
 	}
 
 	template<uint8_t LSize = Size>
-	T length() const
+	inline T length() const
 	{
 		return std::sqrt(dot<LSize>(*this, *this));
 	}
@@ -377,7 +425,7 @@ public:
 		return !((*this) == v2);
 	}
 
-	void normalize()
+	inline void normalize()
 	{
 		(*this) /= this->length();
 	}
@@ -388,7 +436,7 @@ public:
 		return _mm_permute_ts<controlValue, T>::f(xmm); 
 	}
 
-	bool bIsAllZero()
+	inline bool bIsAllZero()
 	{
 		for (uint8_t i = 0; i < Size; ++i)
 		{
@@ -401,7 +449,7 @@ public:
 	}
 
 public:
-	static DVector abs(const DVector& v)
+	inline static DVector abs(const DVector& v)
 	{
 		DVector res;
 		for (uint8_t i = 0; i < Size; ++i)
@@ -412,7 +460,7 @@ public:
 	}
 
 	template<uint8_t DotSize>
-	static T dot(const DVector& v1, const DVector& v2)
+	inline static T dot(const DVector& v1, const DVector& v2)
 	{
 		DVector res = v1 * v2;
 
@@ -425,26 +473,27 @@ public:
 	}
 
 	
-	static T dot(const DVector& v1, const DVector& v2)
+	inline static T dot(const DVector& v1, const DVector& v2)
 	{
 		return dot<Size>(v1, v2);
 	}
 
-	static T clamp(const DVector& v, float low, float high = std::numeric_limits<float>())
+	inline static DVector clamp(const DVector& v, float low, float high = std::numeric_limits<float>())
 	{
+		DVector r;
 		for (uint8_t i = 0; i < Size; i++)
 		{
-			v[i] = std::clamp(low, high);
+			r[i] = std::clamp(v[i], low, high);
 		}
-		return v;
+		return r;
 	}
 
-	static T absDot(const DVector& v1, const DVector& v2)
+	inline static T absDot(const DVector& v1, const DVector& v2)
 	{
 		return std::abs(dot(v1, v2));
 	}
 
-	static DVector cross(const DVector& v1, const DVector& v2)
+	inline static DVector cross(const DVector& v1, const DVector& v2)
 	{
 		DVector v1p = _mm_permute_ts<0b11001001, T>::f(v1.xmm); // Y Z X W
 		DVector v2p = _mm_permute_ts<0b11010010, T>::f(v2.xmm); // Z X Y W
@@ -457,14 +506,14 @@ public:
 		return v3 - v4;
 	}
 
-	static DVector lerp(const DVector& v1, const DVector& v2, const DVector& t)
+	inline static DVector lerp(const DVector& v1, const DVector& v2, const DVector& t)
 	{
 		DVector tInv = DVector(1) - t;
 		return mad(v1, tInv, v2 * t);
 	}
 
 	
-	static T minComponent(const DVector& v)
+	inline static T minComponent(const DVector& v)
 	{
 		T m = v[0];
 		for (uint8_t i = 1; i < Size; ++i)
@@ -478,12 +527,12 @@ public:
 	}
 
 
-	static bool isSameHemisphere(const DVector &w, const DVector &wp)
+	inline static bool isSameHemisphere(const DVector &w, const DVector &wp)
 	{
-		return w.z * wp.z > 0;
+		return w.z() * wp.z() > 0;
 	}
 
-	void permute(const DVector &v, const DVector& indices)
+	inline static DVector permute(const DVector &v, const DVector& indices)
 	{
 		DVector res;
 		for (uint8_t i = 0; i < Size; i++)
@@ -493,7 +542,7 @@ public:
 		return res;
 	}
 
-	static uint8_t maxDimension(const DVector& v)
+	inline static uint8_t maxDimension(const DVector& v)
 	{
 		T m = v[0];
 		uint8_t iM = 0;
@@ -509,7 +558,7 @@ public:
 	}
 
 	
-	static T maxComponent(const DVector& v)
+	inline static T maxComponent(const DVector& v)
 	{
 		T m = v[0];
 		for (uint8_t i = 1; i < Size; ++i)
@@ -523,7 +572,7 @@ public:
 	}
 
 	
-	static T ceil(const DVector& v)
+	inline static DVector ceil(const DVector& v)
 	{
 		DVector r;
 		for (uint8_t i = 0; i < Size; i++)
@@ -534,7 +583,7 @@ public:
 	}
 
 	
-	static T floor(const DVector& v)
+	inline static DVector floor(const DVector& v)
 	{
 		DVector r;
 		for (uint8_t i = 0; i < Size; i++)
@@ -545,48 +594,48 @@ public:
 	}
 
 	
-	static DVector reflect(const DVector& wo, const DVector& n)
+	inline static DVector reflect(const DVector& wo, const DVector& n)
 	{
-		return -wo + 2 * dot(wo, n)*n;
+		return -wo +  n*(2* dot(wo, n));
 	}
 
 
 
 	
-	static DVector sqrt(const DVector& v)
+	inline static DVector sqrt(const DVector& v)
 	{
-		return _mm_sqrt_t(v);
+		return _mm_sqrt_t<T, __mT>(v);
 	}
 
 	
-	static DVector lerp(const DVector& v1, const DVector& v2, float t)
+	inline static DVector lerp(const DVector& v1, const DVector& v2, float t)
 	{
 		float tInv = 1.0 - t;
 		return mad(v1, tInv, v2 * t);
 	}
 
 	
-	static DVector mad(const DVector& v1, float s, const DVector& v2)
+	inline static DVector mad(const DVector& v1, float s, const DVector& v2)
 	{
 		return mad(v1, DVector(s), v2);
 	}
 	
-	static DVector mad(const DVector& v1, const DVector& v2, const DVector& v3)
+	inline static DVector mad(const DVector& v1, const DVector& v2, const DVector& v3)
 	{
 		return _mm_madd_t<T>(v1.xmm, v2.xmm, v3.xmm);
 	}
 	
-	static DVector normalize(const DVector& v)
+	inline static DVector normalize(const DVector& v)
 	{
 		return v / v.length();
 	}
 	
-	static DVector minv(const DVector& v1, const DVector& v2)
+	inline static DVector minv(const DVector& v1, const DVector& v2)
 	{
 		return _mm_min_t<T>(v1.xmm, v2.xmm);
 	}
 	
-	static DVector maxv(const DVector& v1, const DVector& v2)
+	inline static DVector maxv(const DVector& v1, const DVector& v2)
 	{
 		return _mm_max_t<T>(v1.xmm, v2.xmm);
 	}
@@ -594,7 +643,7 @@ public:
 
 
 	
-	static void makeBasisByVector(const DVector& v1, DVector& v2, DVector& v3)
+	inline static void makeBasisByVector(const DVector& v1, DVector& v2, DVector& v3)
 	{
 
 		if (std::abs(v1.x()) > std::abs(v1.y()))
@@ -634,7 +683,7 @@ inline VT dot(const DVector<VT, VSize>& v1, const DVector<VT, VSize>& v2)
 }
 
 template<typename VT, uint8_t VSize>
-inline VT clamp(const DVector<VT, VSize>& v, float low, float high = std::numeric_limits<float>())
+inline DVector<VT, VSize> clamp(const DVector<VT, VSize>& v, float low, float high = std::numeric_limits<float>::infinity())
 {
 	return DVector<VT, VSize>::clamp(v, low, high);
 }
@@ -670,7 +719,7 @@ inline bool isSameHemisphere(const DVector<VT, VSize> &w, const DVector<VT, VSiz
 }
 
 template<typename VT, uint8_t VSize>
-DVector<VT, VSize> permute(const DVector<VT, VSize> &v, const DVector<uint32_t, VSize>& indices)
+inline DVector<VT, VSize> permute(const DVector<VT, VSize> &v, const DVector<uint32_t, VSize>& indices)
 {
 	return DVector<VT, VSize>::permute(v, indices);
 }
@@ -688,13 +737,13 @@ inline VT maxComponent(const DVector<VT, VSize>& v)
 }
 
 template<typename VT, uint8_t VSize>
-inline VT ceil(const DVector<VT, VSize>& v)
+inline DVector<VT, VSize> ceil(const DVector<VT, VSize>& v)
 {
 	return DVector<VT, VSize>::ceil(v);
 }
 
 template<typename VT, uint8_t VSize>
-inline VT floor(const DVector<VT, VSize>& v)
+inline DVector<VT, VSize> floor(const DVector<VT, VSize>& v)
 {
 	return DVector<VT, VSize>::floor(v);
 }

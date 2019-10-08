@@ -1,24 +1,22 @@
-#pragma once
-#include "stdafx.h"
-#include "DVector.h"
+#include "Utils.h"
 
 WML_BEGIN
 
 #define PI 3.1415926535897932384626433832795028841971693993751058209749445923078164062
 
-inline float radians(float degree)
+float radians(float degree)
 {
 	return 0.01745329252*degree;
 }
 
 
-inline float lerp(float a, float b, float t)
+float lerp(float a, float b, float t)
 {
 	return a * (1.0 - t) + b * t;
 }
 
 
-inline float clamp(float t, float a, float b)
+float clamp(float t, float a, float b)
 {
 	if (t <= a)
 	{
@@ -34,14 +32,14 @@ inline float clamp(float t, float a, float b)
 	}
 }
 
-template <typename Predicate> 
-inline int findInterval(int size, const Predicate &pred)
+template <typename Predicate>
+int findInterval(int size, const Predicate &pred)
 {
 	int first = 0, len = size;
 	while (len > 0)
 	{
 		int half = len >> 1, middle = first + half;
-		
+
 		if (pred(middle))
 		{
 			first = middle + 1;
@@ -113,8 +111,8 @@ inline float sin2Phi(const DVector3f &w)
 
 
 inline DVector3f sphericalToCasterian(float sinTheta,
-									float cosTheta,
-									float phi)
+									  float cosTheta,
+									  float phi)
 {
 	return DVector3f(sinTheta*std::cos(phi),
 					 sinTheta*std::sin(phi),
@@ -124,7 +122,7 @@ inline DVector3f sphericalToCasterian(float sinTheta,
 
 
 inline DVector3f sphericalToCasterian(float sinTheta, float cosTheta, float phi,
-										  const DVector3f& x, const DVector3f& y, const DVector3f& z)
+									  const DVector3f& x, const DVector3f& y, const DVector3f& z)
 {
 	DVector3f basis = sphericalToCasterian(sinTheta, cosTheta, phi);
 	return x * basis.x() + y * basis.y() + z * basis.z();
@@ -144,4 +142,6 @@ inline float sphericalPhi(const DVector3f& v)
 
 
 WML_END
+
+
 

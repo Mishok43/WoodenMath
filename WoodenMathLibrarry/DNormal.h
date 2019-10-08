@@ -22,23 +22,23 @@ public:
 	DNormal(T broadcastValue = 0.0f) :
 		base(broadcastValue)
 	{
-		this->insert(3, (T)0);
+	//	this->insert(3, (T)0);
 
 	}
 
 
 	template<TTNumbrEqual(Size, 3)>
-	DNormal(const DVector<T, Size>& v)
+	DNormal(const DVector<T, Size>& v):
+		base(v)
 	{
-		_mm_loada_t<T>(&v.xmm);
-		this->insert(3, 0);
+	//	this->insert(3, 0);
 	}
 
 	template<TTNumbrEqual(Size, 3)>
 	DNormal(DVector<T, 3>&& v) :
-		base(std::move(v.xmm))
+		base(v)
 	{
-		this->insert(3, 0);
+	//	this->insert(3, 0);
 	}
 
 	operator DVector<T, Size>() const
@@ -56,7 +56,7 @@ public:
 	{
 		_mm_loada_t<T>(&v.xmm);
 		this->insert(3, 0);
-		this->insert(2, 0);
+	//	this->insert(2, 0);
 	}
 
 	template<TTNumbrEqual(Size, 2)>
@@ -64,7 +64,7 @@ public:
 		base(std::move(v.xmm))
 	{
 		this->insert(3, 0);
-		this->insert(2, 0);
+	//	this->insert(2, 0);
 	}
 
 };
@@ -72,7 +72,14 @@ public:
 template<typename VT, uint8_t VSize>
 inline DNormal<VT, VSize> faceForward(const DNormal<VT, VSize>& n, const DVector<VT, VSize>& v0)
 {
-	return  (dot(n, v0) < 0.0) ? -n : n;
+	if (dot(n, v0) < 0.0)
+	{
+		return -n;
+	}
+	else
+	{
+		return n;
+	}
 }
 
 using DNormal3f = typename DNormal<float, 3>;

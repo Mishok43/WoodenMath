@@ -51,7 +51,7 @@ public:
 	bool intersect(const DRayf& ray, const float tNear, const float tFar) const
 	{
 		tNear = 0;
-		tFar = ray.tMax;
+		tFar = INFINITY;
 		for (uint8_t i = 0; i < 3; i++)
 		{
 			float invRayDir = ray.dir[i];
@@ -95,14 +95,14 @@ public:
 		if (tYMin > tMin) tMin = tYMin;
 		if (tYMax < tMax) tMax = tYMax;
 
-		float tZMin = (bounds[dirIsNeg[1]].z() - ray.origin.z())*invDir.z();
-		float tZMax = (bounds[1 - dirIsNeg[1]].z() - ray.origin.z())*invDir.z();
+		float tZMin = (bounds[dirIsNeg[2]].z() - ray.origin.z())*invDir.z();
+		float tZMax = (bounds[1 - dirIsNeg[2]].z() - ray.origin.z())*invDir.z();
 
 		if (tMin > tZMax || tZMin > tMax) return false;
 		if (tZMin > tMin) tMin = tZMin;
 		if (tZMax < tMax) tMax = tZMax;
 
-		return (tMin < ray.tMax) && (tMax > 0);
+		return (tMax > 0);
 	}
 
 	PointT corner(uint8_t i = 0) const
@@ -231,12 +231,12 @@ public:
 template<typename lT, typename Func>
 void for_each(const DBounds<lT, 2>& bounds, Func&& f)
 {
-	DPoint<lT, 2> diagonal = bounds.diagonal();
-	for (uint32_t i = 0; i <= diagonal.x(); i++)
+	DPoint<lT, 2> d = bounds.diagonal();
+	for (uint32_t i = 0; i <= d.y(); i++)
 	{
-		for (uint32_t j = 0; j <= diagonal.y(); j++)
+		for (uint32_t j = 0; j <= d.x(); j++)
 		{
-			f(bounds.pMin + DPoint<lT, 2>(i, j), DPoint<lT, 2>(i, j), i*(diagonal.x()+1) + j);
+			f(bounds.pMin + DPoint<lT, 2>(j, i), DPoint<lT, 2>(j, i), i*(d.x()+1) + j);
 		}
 	}
 }

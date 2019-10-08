@@ -45,7 +45,14 @@ public:
 	static constexpr uint8_t SizeXMM = Size;
 	// if float/int32_t/uint32_t - every row = Column(i)|Column(i+1)
 	// if double - every row = Column(i)
-	__mT xmm[Size];
+	union
+	{
+		__mT xmm[Size];
+		struct
+		{
+		T _m00, _m10, _m20, _m30, _m01, _m11, _m21, _m31, _m02, _m12, _m22, _m32, _m03, _m13, _m23, _m33;
+		};
+	};
 
 
 
@@ -87,13 +94,6 @@ public:
 		}
 	}
 
-	DMatrix(const DVector4f& c0, const DVector4f& c1, const DVector4f& c2, const DVector4f& c3)
-	{
-		xmm[0] = c0.xmm;
-		xmm[1] = c1.xmm;
-		xmm[2] = c2.xmm;
-		xmm[3] = c3.xmm;
-	}
 
 	DMatrix(T m00, T m01, T m02, T m03,
 			T m10, T m11, T m12, T m13,
@@ -189,6 +189,9 @@ public:
 		multScalar(*this, s, *this);
 		return (*this);
 	}
+
+	
+
 
 	template<typename T2>
 	inline void setTransition(const DVector<T2, 3>& trans)
@@ -455,7 +458,41 @@ private:
 template<typename T>
 inline DMatrix<T> inverse(const DMatrix<T>& m)
 {
-	static_assert("Not implemented!"); 
+	DMatrix<T> r;
+
+	T det = m._m03 * m._m12*m._m21*m._m30 - m._m02 * m._m13*m._m21*m._m30 - m._m03 * m._m11*m._m22*m._m30 + m._m01 * m._m13*m._m22*m._m30 +
+		m._m02 * m._m11*m._m23*m._m30 - m._m01 * m._m12*m._m23*m._m30 - m._m03 * m._m12*m._m20*m._m31 + m._m02 * m._m13*m._m20*m._m31 +
+		m._m03 * m._m10*m._m22*m._m31 - m._m00 * m._m13*m._m22*m._m31 - m._m02 * m._m10*m._m23*m._m31 + m._m00 * m._m12*m._m23*m._m31 +
+		m._m03 * m._m11*m._m20*m._m32 - m._m01 * m._m13*m._m20*m._m32 - m._m03 * m._m10*m._m21*m._m32 + m._m00 * m._m13*m._m21*m._m32 +
+		m._m01 * m._m10*m._m23*m._m32 - m._m00 * m._m11*m._m23*m._m32 - m._m02 * m._m11*m._m20*m._m33 + m._m01 * m._m12*m._m20*m._m33 +
+		m._m02 * m._m10*m._m21*m._m33 - m._m00 * m._m12*m._m21*m._m33 - m._m01 * m._m10*m._m22*m._m33 + m._m00 * m._m11*m._m22*m._m33;
+
+
+	T m00 = m._m12 * m._m23*m._m31 - m._m13 * m._m22*m._m31 + m._m13 * m._m21*m._m32 - m._m11 * m._m23*m._m32 - m._m12 * m._m21*m._m33 + m._m11 * m._m22*m._m33;
+	T m01 = m._m03 * m._m22*m._m31 - m._m02 * m._m23*m._m31 - m._m03 * m._m21*m._m32 + m._m01 * m._m23*m._m32 + m._m02 * m._m21*m._m33 - m._m01 * m._m22*m._m33;
+	T m02 = m._m02 * m._m13*m._m31 - m._m03 * m._m12*m._m31 + m._m03 * m._m11*m._m32 - m._m01 * m._m13*m._m32 - m._m02 * m._m11*m._m33 + m._m01 * m._m12*m._m33;
+	T m03 = m._m03 * m._m12*m._m21 - m._m02 * m._m13*m._m21 - m._m03 * m._m11*m._m22 + m._m01 * m._m13*m._m22 + m._m02 * m._m11*m._m23 - m._m01 * m._m12*m._m23;
+	T m10 = m._m13 * m._m22*m._m30 - m._m12 * m._m23*m._m30 - m._m13 * m._m20*m._m32 + m._m10 * m._m23*m._m32 + m._m12 * m._m20*m._m33 - m._m10 * m._m22*m._m33;
+	T m11 = m._m02 * m._m23*m._m30 - m._m03 * m._m22*m._m30 + m._m03 * m._m20*m._m32 - m._m00 * m._m23*m._m32 - m._m02 * m._m20*m._m33 + m._m00 * m._m22*m._m33;
+	T m12 = m._m03 * m._m12*m._m30 - m._m02 * m._m13*m._m30 - m._m03 * m._m10*m._m32 + m._m00 * m._m13*m._m32 + m._m02 * m._m10*m._m33 - m._m00 * m._m12*m._m33;
+	T m13 = m._m02 * m._m13*m._m20 - m._m03 * m._m12*m._m20 + m._m03 * m._m10*m._m22 - m._m00 * m._m13*m._m22 - m._m02 * m._m10*m._m23 + m._m00 * m._m12*m._m23;
+	T m20 = m._m11 * m._m23*m._m30 - m._m13 * m._m21*m._m30 + m._m13 * m._m20*m._m31 - m._m10 * m._m23*m._m31 - m._m11 * m._m20*m._m33 + m._m10 * m._m21*m._m33;
+	T m21 = m._m03 * m._m21*m._m30 - m._m01 * m._m23*m._m30 - m._m03 * m._m20*m._m31 + m._m00 * m._m23*m._m31 + m._m01 * m._m20*m._m33 - m._m00 * m._m21*m._m33;
+	T m22 = m._m01 * m._m13*m._m30 - m._m03 * m._m11*m._m30 + m._m03 * m._m10*m._m31 - m._m00 * m._m13*m._m31 - m._m01 * m._m10*m._m33 + m._m00 * m._m11*m._m33;
+	T m23 = m._m03 * m._m11*m._m20 - m._m01 * m._m13*m._m20 - m._m03 * m._m10*m._m21 + m._m00 * m._m13*m._m21 + m._m01 * m._m10*m._m23 - m._m00 * m._m11*m._m23;
+	T m30 = m._m12 * m._m21*m._m30 - m._m11 * m._m22*m._m30 - m._m12 * m._m20*m._m31 + m._m10 * m._m22*m._m31 + m._m11 * m._m20*m._m32 - m._m10 * m._m21*m._m32;
+	T m31 = m._m01 * m._m22*m._m30 - m._m02 * m._m21*m._m30 + m._m02 * m._m20*m._m31 - m._m00 * m._m22*m._m31 - m._m01 * m._m20*m._m32 + m._m00 * m._m21*m._m32;
+	T m32 = m._m02 * m._m11*m._m30 - m._m01 * m._m12*m._m30 - m._m02 * m._m10*m._m31 + m._m00 * m._m12*m._m31 + m._m01 * m._m10*m._m32 - m._m00 * m._m11*m._m32;
+	T m33 = m._m01 * m._m12*m._m20 - m._m02 * m._m11*m._m20 + m._m02 * m._m10*m._m21 - m._m00 * m._m12*m._m21 - m._m01 * m._m10*m._m22 + m._m00 * m._m11*m._m22;
+
+
+	r.loadData(m00, m01, m02, m03,
+			 m10, m11, m12, m13,
+			 m20, m21, m22, m23,
+			 m30, m31, m32, m33);
+	r *= 1.0 / det;
+
+	return r;
 }
 
 template<typename T>

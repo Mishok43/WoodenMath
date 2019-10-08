@@ -25,7 +25,7 @@ public:
 
 	DPoint<T, 3> origin;
 	DVector<T, 3> dir;
-	float t, tMax;
+	float t;
 };
 
 

@@ -4,6 +4,7 @@
 #include "DMatrix.h"
 #include "DQuaternion.h"
 #include "DBounds.h"
+#include "DNormal.h"
 
 
 WML_BEGIN
@@ -37,7 +38,7 @@ public:
 	DTransform(const Vector& trans, const Vector& scale, const Quaternion& rotation)
 	{
 		mData = makeMatrix(rotation);
-		mInvData = transpose(mData);
+		mInvData = wml::transpose(mData);
 
 		mData.setTransition(trans);
 		mInvData.setTransition(-trans);
@@ -58,7 +59,7 @@ public:
 
 	inline DTransform operator*(const DTransform& v) const
 	{
-		return DTransform(mData*v.mData, mInvData*v.mInvData);
+		return DTransform(mData*v.mData, v.mInvData*mInvData);
 	}
 
 
@@ -66,7 +67,7 @@ public:
 	inline DTransform& operator*=(const DTransform& v)
 	{
 		mData *= v.mData;
-		mInvData *= v.mInvData;
+		mInvData = v.mInvData*mInvData;
 		return *this;
 	}
 
@@ -86,12 +87,16 @@ public:
 	template<typename lT>
 	inline DVector<lT, 3> operator()(const DVector<lT, 3>& v) const
 	{
+		v.insertUnsafe(3, (lT)0);
+
 		return v * mData;
 	}
 
 	template<typename lT>
 	inline DVector<lT, 3> operator()(const DVector<lT, 3>& v, inv_transform_type) const
 	{
+		v.insertUnsafe(3, (lT)0);
+
 		return v * mInvData;
 	}
 
@@ -110,26 +115,30 @@ public:
 	template<typename lT, uint8_t lSize>
 	inline DPoint<lT, lSize> operator()(const DPoint<lT, lSize>& v) const
 	{
+		v.insertUnsafe(3, (lT)1);
 		return v * mData;
 	}
 
 	template<typename lT, uint8_t lSize>
 	inline DPoint<lT, lSize> operator()(const DPoint<lT, lSize>& v, inv_transform_type) const
 	{
+		v.insertUnsafe(3, (lT)1);
 		return v * mInvData;
 	}
 
 	template<typename lT, uint8_t lSize>
 	inline DNormal<lT, lSize> operator()(const DNormal<lT, lSize>& n) const
 	{
-		Matrix mInvTranspose = Matrix::transpose(mInv);
+		n.insertUnsafe(3, (lT)0);
+		Matrix mInvTranspose = wml::transpose(mInvData);
 		return n * mInvTranspose;
 	}
 
 	template<typename lT, uint8_t lSize>
 	inline DNormal<lT, lSize> operator()(const DNormal<lT, lSize>& n, inv_transform_type) const
 	{
-		Matrix mInvTranspose = Matrix::transpose(mData);
+		n.insertUnsafe(3, (lT)0);
+		Matrix mInvTranspose = wml::transpose(mData);
 		return n * mInvTranspose;
 	}
 
@@ -205,7 +214,7 @@ public:
 	{
 		DTransform t;
 		t.mData.setTransition(x, y, z);
-		t.mInvData.setTransition(-x, -y, -y);
+		t.mInvData.setTransition(-x, -y, -z);
 		return t;
 	}
 
@@ -234,16 +243,14 @@ public:
 
 	static DTransform makePerspective(float fov, float n, float f)
 	{
-		Matrix perps = Matrix(
-			1.0, 0.0, 0.0, 0.0,
-			0.0, 1.0, 0.0, 0.0,
-			0.0, 0.0, f / (f - n), 0.0,
-			0.0, 0.0, -f * n*(f - n), 1.0 );
-
 		float invTanAng = 1.0 / std::tan(radians(fov)/2);
-		perps *= makeScale(DVector3f(invTanAng, invTanAng, 1.0));
+		Matrix perps = Matrix(
+			invTanAng, 0.0, 0.0, 0.0,
+			0.0, invTanAng, 0.0, 0.0,
+			0.0, 0.0, f / (f - n), 1.0,
+			0.0, 0.0, -f * n*(f - n), 0.0 );
 
-		Matrix perpsInv = inverse(perps);
+		Matrix perpsInv = wml::inverse(perps);
 		return DTransform(std::move(perps), std::move(perpsInv));
 	}
 
@@ -267,7 +274,8 @@ public:
 			0.0, sinAngle, cosAngle, 0.0,
 			0.0, 0.0, 0.0, 1.0);
 
-		t.mInvData = Matrix.transpose(t.mData);
+		t.mInvData = wml::transpose(t.mData);
+		return t;
 	}
 
 	static DTransform makeRotateY(T angle)
@@ -282,7 +290,8 @@ public:
 			-sinAngle, 0.0, cosAngle, 0.0,
 			0.0, 0.0, 0.0, 1.0);
 
-		t.mInvData = Matrix.transpose(t.mData);
+		t.mInvData = wml::transpose(t.mData);
+		return t;
 	}
 
 	static DTransform makeRotateZ(T angle)
@@ -297,7 +306,8 @@ public:
 			0.0, 0.0, 1.0, 0.0,
 			0.0, 0.0, 0.0, 1.0);
 
-		t.mInvData = Matrix.transpose(t.mData);
+		t.mInvData = wml::transpose(t.mData);
+		return t;
 	}
 
 	static DTransform makeRotate(DVector<T, 3> axis, T angle)
@@ -337,10 +347,20 @@ protected:
 };
 
 template<typename T>
-static DTransform<T> inverse(const DTransform<T>& transform)
+DTransform<T> inverse(const DTransform<T>& transform)
 {
 	return DTransform(transform.mInv(), transform.m());
 }
+
+template<typename T>
+DTransform<T> transpose(const DTransform<T>& transform)
+{
+	DTransform<T> res = transform;
+	res.transpose();
+	return res;
+}
+
+
 
 template<typename T>
 inline DTransform<T> makeTransform(const DQuaternion<T>& q)

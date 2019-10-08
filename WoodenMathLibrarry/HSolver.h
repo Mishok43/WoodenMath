@@ -1,11 +1,10 @@
-#pragma once
+#pragma  once
 #include "stdafx.h"
 
 WML_BEGIN
 
 namespace Solvers{
-	
-	bool getRootsQuadraticEquation(float a, float b, float c, float& x0, float& x1)
+	inline bool getRootsQuadraticEquation(float a, float b, float c, float& x0, float& x1)
 	{
 		double discrim = (double)b * (double)b - 4 * (double)a * (double)c;
 		if (discrim < 0) return false;
@@ -19,9 +18,8 @@ namespace Solvers{
 		if (x0 > x1) std::swap(x0, x1);
 		return true;
 	}
-
-	bool solveLinearSystem2x2(const float A[2][2], const float B[2], float*x0,
-								   float *x1)
+	inline bool solveLinearSystem2x2(const float A[2][2], const float B[2], float*x0,
+							  float *x1)
 	{
 		float det = A[0][0] * A[1][1] - A[0][1] * A[1][0];
 		if (std::abs(det) < 1e-10f) return false;
@@ -30,7 +28,5 @@ namespace Solvers{
 		if (std::isnan(*x0) || std::isnan(*x1)) return false;
 		return true;
 	}
-
 }
-
 WML_END
