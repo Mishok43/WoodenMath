@@ -158,6 +158,7 @@
   <ItemGroup>
     <ClInclude Include="DAnimatedTransform.h" />
     <ClInclude Include="DBounds.h" />
+    <ClInclude Include="DBoundSphere.h" />
     <ClInclude Include="DDistribution.h" />
     <ClInclude Include="DMatrix.h" />
     <ClInclude Include="DNormal.h" />
