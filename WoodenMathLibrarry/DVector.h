@@ -8,6 +8,39 @@ WML_BEGIN
 
 using namespace TypedSSE;
 
+template<typename T, uint8_t Size>
+class DVectorPacked
+{
+public:
+	std::array<T, Size> arr;
+
+
+	constexpr uint8_t size() const
+	{
+		return Size;
+	}
+
+	const T* data() const
+	{
+		return &arr[0];
+	}
+
+	T* data() 
+	{
+		return &arr[0];
+	}
+
+	inline T operator[](uint32_t i) const
+	{
+		return arr[i];
+	}
+
+	inline T& operator[](uint32_t i)
+	{
+		return arr[i];
+	}
+};
+
 
 template<typename T, uint8_t Size, typename __mT = __m_t<T, (Size+3)/4>, uint8_t alignment = sse_alignment_size_v<__mT>>
 class alignas(alignment) DVector
@@ -15,6 +48,10 @@ class alignas(alignment) DVector
 public:
 	mutable __mT xmm;
 
+
+	DVector(const DVectorPacked<T, Size>& vPacked):
+		xmm(_mm_loadu_t(vPacked.data()))
+	{}
 	
 	DVector(T* data)
 	{
@@ -386,7 +423,7 @@ public:
 		return (*this)[3];
 	}
 
-	inline uint8_t size() const
+	inline constexpr uint8_t size() const
 	{
 		return Size;
 	}
