@@ -6,8 +6,8 @@
 #include "DRay.h"
 
 WML_BEGIN
-template<typename T, uint8_t VSize, uint8_t alignment = sse_alignment_size_v<__m_t<T>>>
-class alignas(alignment) DBounds
+template<typename T, uint8_t VSize>
+class ALIGN_AS_VEC(T, VSize) DBounds
 {
 public:
 	using PointT = typename DPoint<T, VSize>;
@@ -148,7 +148,7 @@ public:
 		if constexpr (VSize == 3)
 		{
 			// x*y + y*z+z*x
-			PointT d2 = d.permute<0b11001001>(); // y z x w
+			PointT d2 = d.permuteEach<0b11001001>(); // y z x w
 			return 2*PointT::dot<3>(d, d2);
 		}
 		else

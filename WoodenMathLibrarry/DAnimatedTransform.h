@@ -6,7 +6,7 @@
 
 WML_BEGIN
 
-template<typename T, uint8_t alignment = sse_alignment_size_v<__m_t<T>>>
+template<typename T>
 class DAnimatedTransform
 {
 	using Vector = typename DVector<T, 3>;

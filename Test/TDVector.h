@@ -9,171 +9,217 @@ using namespace wml;
 
 
 
+
 namespace
 {
-	using VecT = typename DVector8f;
+	using VecT = typename DVector3f;
 
-	TEST(VectorF, ADD)
+	TEST(BigVectorF, Init)
 	{
-		float x;
-		std::cin >> x;
-		VecT v;
-		v = (x);
+		DVector<float, 12> v1(1.0);
+		v1.insert(4, 2.0);
+		v1.insert(10, 4.0);
 
-		std::cout << v3.x() << v3.z();
+		float r[12] = { 1.0, 1.0, 1.0, 1.0, 2.0, 1.0, 1.0, 1.0, 1.0, 1.0, 4.0, 1.0 };
+
+		for (int i = 0; i < 12; i++)
+		{
+			ASSERT_EQ(v1[i], r[i]);
+		}
+
+		DVector<float, 12> v2(r);
+
+		ASSERT_EQ(v1, v2);
 	}
 
-	//TEST(VectorF, Init)
-	//{
-	//	
-	//	VecT v;
-	//	ASSERT_VFLOAT3_EQ(v, 0.0f, 0.0f, 0.0f);
+	TEST(BigVectorF, Add)
+	{
+		DVector<float, 12> v1(1.0);
 
-	//	v = VecT(1.0f);
-	//	ASSERT_VFLOAT3_EQ(v, 1.0f, 1.0f, 1.0f);
+		float r[12] = { 2.0, 1.0, 1.0, 1.0, 2.0, 1.0, 1.0, 1.0, 1.0, 1.0, 4.0, 5.0 };
+		DVector<float, 12> v2(r);
 
-	//	v = VecT(1.0f, 2.0f, 3.0f);
-	//	ASSERT_VFLOAT3_EQ(v, 1.0f, 2.0f, 3.0f);
-	//}
+		DVector<float, 12> v3 = v1 + v2;
 
-	//TEST(VectorF, ConvertToInt)
-	//{
-	//	const VecT v(10.0f, 12.5f, 13.1f);
-	//	DVector3i a = v;
-	//	ASSERT_VINT3_EQ(a, 10, 12, 13);
-	//}
+		for (int i = 0; i < 12; i++)
+		{
+			ASSERT_FLOAT_EQ(v3[i], 1.0 + r[i]);
+		}
+	}
 
-	//TEST(VectorF, Addition)
-	//{
-	//	VecT v1(0.0f, 1.0f, 4.0f);
-	//	VecT v2(1.0f, 2.0f, 3.0f);
+	TEST(BigVectorF, Sqrt)
+	{
+		float r[12] = { 2.0, 1.0, 1.0, 1.0, 2.0, 1.0, 1.0, 1.0, 1.0, 1.0, 4.0, 5.0 };
+		DVector<float, 12> v(r);
 
-	//	VecT v3 = v1 + v2;
+		DVector<float, 12> vsqrt = sqrt(v);
 
-	//	ASSERT_VFLOAT3_EQ(v3, 1.0f, 3.0f, 7.0f);
-	//	v3 += v3;
-	//	ASSERT_VFLOAT3_EQ(v3, 2.0f, 6.0f, 14.0f);
-	//}
+		for (int i = 0; i < 12; i++)
+		{
+			ASSERT_FLOAT_EQ(vsqrt[i], std::sqrt(r[i]));
+		}
+	}
 
-	//TEST(VectorF, Substraction)
-	//{
-	//	VecT v1(0.0f, 1.0f, 4.0f);
-	//	VecT v2(1.0f, 2.0f, 3.0f);
+	TEST(VectorF, Init)
+	{
 
-	//	VecT v3 = v1 - v2;
+		VecT v;
+		ASSERT_VFLOAT3_EQ(v, 0.0f, 0.0f, 0.0f);
 
-	//	ASSERT_VFLOAT3_EQ(v3, -1.0f, -1.0f, 1.0f);
-	//	v3 -= v3;
-	//	ASSERT_VFLOAT3_EQ(v3, 0.0f, 0.0f, 0.0f);
-	//}
+		v = VecT(1.0f);
+		ASSERT_VFLOAT3_EQ(v, 1.0f, 1.0f, 1.0f);
 
+		v = VecT(1.0f, 2.0f, 3.0f);
+		ASSERT_VFLOAT3_EQ(v, 1.0f, 2.0f, 3.0f);
+	}
 
-	//TEST(VectorF, ScalarMulti)
-	//{
-	//	VecT v1(0.0f, 1.0f, 4.0f);
-	//	float s = 3.0f;
+	TEST(VectorF, ConvertToInt)
+	{
+		const VecT v(10.0f, 12.5f, 13.1f);
+		DVector3i a = v;
+		ASSERT_VINT3_EQ(a, 10, 12, 13);
+	}
 
-	//	VecT v2 = v1*s;
-	//	
-	//	ASSERT_VFLOAT3_EQ(v2, v1.x()*s, v1.y()*s, v1.z()*s);
+	TEST(VectorF, Addition)
+	{
+		VecT v1(0.0f, 1.0f, 4.0f);
+		VecT v2(1.0f, 2.0f, 3.0f);
 
-	//	s = 10.0f;
-	//	
-	//	VecT v2tmp = v2;
+		VecT v3 = v1 + v2;
 
-	//	v2 *= s;
-	//	ASSERT_VFLOAT3_EQ(v2, v2tmp.x()*s, v2tmp.y()*s, v2tmp.z()*s);
+		ASSERT_VFLOAT3_EQ(v3, 1.0f, 3.0f, 7.0f);
+		v3 += v3;
+		ASSERT_VFLOAT3_EQ(v3, 2.0f, 6.0f, 14.0f);
+	}
 
-	//	v2tmp = v2;
+	TEST(VectorF, Substraction)
+	{
+		VecT v1(0.0f, 1.0f, 4.0f);
+		VecT v2(1.0f, 2.0f, 3.0f);
 
-	//	int32_t s2 = 20;
-	//	v2 *= s2;
+		VecT v3 = v1 - v2;
 
-	//	ASSERT_VFLOAT3_EQ(v2, v2tmp.x()*s2, v2tmp.y()*s2, v2tmp.z()*s2);
-	//}
-
-	//TEST(VectorF, PerElementMultiplication)
-	//{
-	//	VecT v1(0.0f, 1.0f, 4.0f);
-	//	VecT v2(1.0f, 2.0f, 3.0f);
-
-	//	VecT v3 = v1 * v2;
-
-	//	ASSERT_VFLOAT3_EQ(v3, 0.0f, 2.0f, 12.0f);
-	//	v3 *= v3;
-	//	ASSERT_VFLOAT3_EQ(v3, 0.0f, 4.0f, 144.0f);
-	//}
-
-	//TEST(VectorF, PerElementDivision)
-	//{
-	//	VecT v1(0.0f, 1.0f, 4.0f);
-	//	VecT v2(1.0f, 2.0f, 3.0f);
-
-	//	VecT v3 = v1/ v2;
-
-	//	ASSERT_VFLOAT3_EQ(v3, 0.0f, 1.0f/2.0f, 4.0f/3.0f);
-	//}
-
-	//TEST(VectorF, Normalize)
-	//{
-	//	VecT v1(0.5f, 1.0f, 4.0f);
-	//	VecT vNormalize = normalize(v1);
-	//	ASSERT_VFLOAT3_EQ(vNormalize, 0.12038585308576920076209076441895f, 0.2407717061715384015241815288379f, 0.9630868246861536060967261153516f);
-	//}
-
-	//TEST(VectorF, Length)
-	//{
-	//	VecT v1(2.0f, 1.0f, 4.0f);
-	//	ASSERT_FLOAT_EQ(v1.length2(), 21.0f);
-	//	ASSERT_FLOAT_EQ(v1.length(), sqrt(21.0f));
-	//}
-
-	//TEST(VectorF, Lerp)
-	//{
-	//	VecT v1(2.0f, 1.0f, 4.0f);
-	//	VecT v2(4.0f, 2.0f, 6.0f);
-	//	float t = 0.4f;
-	//	float tInv = 1.0f - t;
-
-	//	ASSERT_VFLOAT3_EQ(lerp(v1, v2, t), tInv*v1.x() + t * v2.x(),
-	//					  tInv*v1.y() + t * v2.y(), tInv*v1.z() + t * v2.z());
-	//}
+		ASSERT_VFLOAT3_EQ(v3, -1.0f, -1.0f, 1.0f);
+		v3 -= v3;
+		ASSERT_VFLOAT3_EQ(v3, 0.0f, 0.0f, 0.0f);
+	}
 
 
-	//TEST(VectorF, Dot)
-	//{
-	//	VecT v1(0.0f, 1.0f, 4.0f);
-	//	VecT v2(10.0f, 20.0f, 5.0f);
-	//	DVector3f v3 = v1;
-	//	float dotv = dot(v3, v2);
-	//	ASSERT_FLOAT_EQ(dotv, v1.x()*v2.x() + v1.y()*v2.y() + v1.z()*v2.z());
-	//}
+	TEST(VectorF, ScalarMulti)
+	{
+		VecT v1(0.0f, 1.0f, 4.0f);
+		float s = 3.0f;
 
-	//TEST(VectorF, Cross)
-	//{
-	//	VecT v1(1.0f, 1.0f, 4.0f);
-	//	VecT v2(10.0f, 20.0f, 5.0f);
+		VecT v2 = v1 * s;
 
-	//	VecT crossv = cross(v1, v2);
-	//	ASSERT_VFLOAT3_EQ(crossv, -75.0f, 35.0f, 10.0f);
-	//}
+		ASSERT_VFLOAT3_EQ(v2, v1.x()*s, v1.y()*s, v1.z()*s);
 
-	//TEST(VectorF, Min)
-	//{
-	//	VecT v1(2.0f, 1.0f, 20.0f);
-	//	ASSERT_FLOAT_EQ(minComponent(v1), 1.0f);
+		s = 10.0f;
 
-	//	VecT v2(10.0f, 20.0f, 5.0f);
-	//	ASSERT_VFLOAT3_EQ(minv(v1, v2), 2.0f, 1.0f, 5.0f);
-	//}
+		VecT v2tmp = v2;
 
-	//TEST(VectorF, Equality)
-	//{
-	//	VecT v1(2.0f, 1.0f, 20.0f);
-	//	VecT v2(2.0f, 1.0f, 20.0f);
+		v2 *= s;
+		ASSERT_VFLOAT3_EQ(v2, v2tmp.x()*s, v2tmp.y()*s, v2tmp.z()*s);
 
-	//	ASSERT_EQ(v1, v2);
-	//}
+		v2tmp = v2;
+
+		int32_t s2 = 20;
+		v2 *= s2;
+
+		ASSERT_VFLOAT3_EQ(v2, v2tmp.x()*s2, v2tmp.y()*s2, v2tmp.z()*s2);
+	}
+
+	TEST(VectorF, PerElementMultiplication)
+	{
+		VecT v1(0.0f, 1.0f, 4.0f);
+		VecT v2(1.0f, 2.0f, 3.0f);
+
+		VecT v3 = v1 * v2;
+
+		ASSERT_VFLOAT3_EQ(v3, 0.0f, 2.0f, 12.0f);
+		v3 *= v3;
+		ASSERT_VFLOAT3_EQ(v3, 0.0f, 4.0f, 144.0f);
+	}
+
+	TEST(VectorF, PerElementDivision)
+	{
+		VecT v1(0.0f, 1.0f, 4.0f);
+		VecT v2(1.0f, 2.0f, 3.0f);
+
+		VecT v3 = v1 / v2;
+
+		ASSERT_VFLOAT3_EQ(v3, 0.0f, 1.0f / 2.0f, 4.0f / 3.0f);
+	}
+
+	TEST(VectorF, Normalize)
+	{
+		VecT v1(0.5f, 1.0f, 4.0f);
+		VecT vNormalize = normalize(v1);
+		ASSERT_VFLOAT3_EQ(vNormalize, 0.12038585308576920076209076441895f, 0.2407717061715384015241815288379f, 0.9630868246861536060967261153516f);
+	}
+
+	TEST(VectorF, Length)
+	{
+		VecT v1(2.0f, 1.0f, 4.0f);
+		ASSERT_FLOAT_EQ(v1.length2(), 21.0f);
+		ASSERT_FLOAT_EQ(v1.length(), sqrt(21.0f));
+	}
+
+	TEST(VectorF, Lerp)
+	{
+		VecT v1(2.0f, 1.0f, 4.0f);
+		VecT v2(4.0f, 2.0f, 6.0f);
+		float t = 0.4f;
+		float tInv = 1.0f - t;
+
+		ASSERT_VFLOAT3_EQ(lerp(v1, v2, t), tInv*v1.x() + t * v2.x(),
+						  tInv*v1.y() + t * v2.y(), tInv*v1.z() + t * v2.z());
+	}
 
 
+	TEST(VectorF, Dot)
+	{
+		VecT v1(0.0f, 1.0f, 4.0f);
+		VecT v2(10.0f, 20.0f, 5.0f);
+		VecT v3 = v1;
+		float d = dot(v3, v2);
+		ASSERT_FLOAT_EQ(d, v1.x()*v2.x() + v1.y()*v2.y() + v1.z()*v2.z());
+
+		d = dot<2>(v2, v3);
+
+		ASSERT_FLOAT_EQ(d, v1.x()*v2.x() + v1.y()*v2.y());
+	}
+
+	TEST(VectorF, Cross)
+	{
+		VecT v1(1.0f, 1.0f, 4.0f);
+		VecT v2(10.0f, 20.0f, 5.0f);
+
+		VecT crossv = cross(v1, v2);
+		ASSERT_VFLOAT3_EQ(crossv, -75.0f, 35.0f, 10.0f);
+	}
+
+	TEST(VectorF, Min)
+	{
+		VecT v1(2.0f, 1.0f, 20.0f);
+		ASSERT_FLOAT_EQ(minComponent(v1), 1.0f);
+
+		VecT v2(10.0f, 20.0f, 5.0f);
+		ASSERT_VFLOAT3_EQ(minv(v1, v2), 2.0f, 1.0f, 5.0f);
+	}
+
+	TEST(VectorF, Equality)
+	{
+		VecT v1(2.0f, 1.0f, 20.0f);
+		VecT v2(2.0f, 1.0f, 20.0f);
+
+		VecT v3(2.0f, 1.0f, 20.0f);
+		v3.insert(3, 10.0);
+
+		ASSERT_EQ(v1, v2);
+		ASSERT_EQ(v1, v3);
+
+		v3.insert(1, 10.0);
+		ASSERT_TRUE(v1 != v3);
+	}
 }

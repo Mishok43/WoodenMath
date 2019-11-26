@@ -61,16 +61,16 @@ public:
 	{
 		if constexpr (std::is_same_v<T2, double>)
 		{
-			xmm[0] = c0.xmm;
-			xmm[1] = c1.xmm;
-			xmm[2] = c2.xmm;
+			xmm[0] = *reinterpret_cast<__mT*>(c0.data());
+			xmm[1] = *reinterpret_cast<__mT*>(c1.data());
+			xmm[2] = *reinterpret_cast<__mT*>(c2.data());
 			xmm[3] = _mm_setr_t<T>(0, 0, 0, 1);
 
 		}
 		else
 		{
-			std::memcpy(&xmm[0], &c0.xmm, 16);
-			std::memcpy(((char*)&xmm[0])+16, &c1.xmm, 16);
+			std::memcpy(&xmm[0], c0.data(), 16);
+			std::memcpy(((char*)&xmm[0])+16, c1.data(), 16);
 			xmm[3] = _mm_setr_t<T>(c2.x(), c2.y(), c2.z(), c2.w(), 0, 0, 0, 1);
 		}
 	}
@@ -80,17 +80,17 @@ public:
 	{
 		if constexpr (std::is_same_v<T2, double>)
 		{
-			xmm[0] = c0.xmm;
-			xmm[1] = c1.xmm;
-			xmm[2] = c2.xmm;
-			xmm[3] = c3.xmm;
+			xmm[0] = *reinterpret_cast<__mT*>(c0.data());
+			xmm[1] = *reinterpret_cast<__mT*>(c1.data());
+			xmm[2] = *reinterpret_cast<__mT*>(c2.data());
+			xmm[3] = *reinterpret_cast<__mT*>(c3.data());
 		}
 		else
 		{
-			std::memcpy(&xmm[0], &c0.xmm, 16);
-			std::memcpy(((char*)&xmm[0]) + 16, &c1.xmm, 16);
-			std::memcpy(&xmm[1], &c2.xmm, 16);
-			std::memcpy(((char*)&xmm[1]) + 16, &c3.xmm, 16);
+			std::memcpy(&xmm[0], c0.data(), 16);
+			std::memcpy(((char*)&xmm[0]) + 16, c1.data(), 16);
+			std::memcpy(&xmm[1], c2.data(), 16);
+			std::memcpy(((char*)&xmm[1]) + 16, c3.data(), 16);
 		}
 	}
 
@@ -278,100 +278,48 @@ public:
 
 
 private:
-	template<typename T2=T, typename  std::enable_if_t<std::is_same_v<T2, double>, bool> = true>
+	template<TTTypeEqual(T, double)>
 	friend inline DVector<T, 4> operator*(const DVector<T, 4>& v1, const DMatrix& m0) noexcept
 	{
-		T resData[4];
-
-		for (uint8_t i = 0; i < Size; ++i)
-		{
-			DVector<T, 4> v2 = m0.xmm[i];
-			DVector<T, 4> vres = v1 * v2;
-			
-			T res = 0;
-			for (uint8_t j = 0; j < 4; ++j)
-			{
-				res += vres[j];
-			}
-			resData[i] = res;
-		}
-
-
+		__mT resData = dot_t(
+			v1.lines32[0], v1.lines32[0], v1.lines32[0], v1.lines32[0],
+			m0.xmm[0], m0.xmm[1], m0.xmm[2], m0.xmm[3]);
+			   
 		return DVector<T, 4>(resData);
 	}
 
-	template<typename T2 = T, typename  std::enable_if_t<std::is_same_v<T2, double>, bool> = true>
+	template<TTTypeEqual(T, double)>
 	friend inline DVector<T, 3> operator*(const DVector<T, 3>& v1, const DMatrix& m0) noexcept
 	{
-		T resData[4];
-
-		for (uint8_t i = 0; i < 3; ++i)
-		{
-			DVector<T, 3> v2 = m0.xmm[i];
-			DVector<T, 3> vres = v1 * v2;
-
-			T res = 0;
-			for (uint8_t j = 0; j < 3; ++j)
-			{
-				res += vres[j];
-			}
-			resData[i] = res;
-		}
-
-		resData[3] = 0;
-
-		return DVector<T, 3>(resData);
-	}
-
-
-	template<typename T2 = T, typename  std::enable_if_t<!std::is_same_v<T2, double>, bool> = true>
-	friend inline DVector<T, 4> operator*(const DVector<T, 4>& v1, const DMatrix& m0) noexcept
-	{
-		T resData[4];
-
-		__mT xmmV1 = _mm256_broadcast_t<T>((T*)(&(v1.xmm)));
-		for (uint8_t i = 0; i < Size; ++i)
-		{
-			__mT xmmRes = _mm_mul_t<T, __mT>(xmmV1, m0.xmm[i]);
-
-			T res0 = 0;
-			T res1 = 0;
-			for (uint8_t j = 0; j < 4; ++j)
-			{
-				res0 += ((T*)(&xmmRes))[j];
-				res1 += ((T*)(&xmmRes))[j + 4];
-			}
-			resData[i*2] = res0;
-			resData[i*2+1] = res1;
-		}
-
+		__mT resData = dot_t(
+			  v1.lines32[0], v1.lines32[0], v1.lines32[0], v1.lines32[0],
+			  m0.xmm[0], m0.xmm[1], m0.xmm[2], m0.xmm[3]);
+		
 		return DVector<T, 4>(resData);
 	}
 
-	template<typename T2 = T, typename  std::enable_if_t<!std::is_same_v<T2, double>, bool> = true>
+	template<TTTypeNotEqual(T, double)>
+	friend inline DVector<T, 4> operator*(const DVector<T, 4>& v1, const DMatrix& m0) noexcept
+	{
+		DVector<T, 4> r;
+		__mT xmmV1 = _mm256_broadcast_t(v1.data());
+		
+		auto resData = dot2in1_t(xmmV1, xmmV1,m0.xmm[0], m0.xmm[1]);
+		r.set(0, resData);
+		return r;
+	}
+
+	template<TTTypeNotEqual(T, double)>
 	friend inline DVector<T, 3> operator*(const DVector<T, 3>& v1, const DMatrix& m0) noexcept
 	{
-		T resData[4];
+		DVector<T, 3> r;
 
-		__mT xmmV1 = _mm256_broadcast_t<T>((T*)(&(v1.xmm)));
-		for (uint8_t i = 0; i < Size; ++i)
-		{
-			__mT xmmRes = _mm_mul_t<T, __mT>(xmmV1, m0.xmm[i]);
+		const float* k = v1.data();
+		__mT xmmV1 = _mm256_broadcast_t(v1.data());
 
-			T res0 = 0;
-			T res1 = 0;
-			for (uint8_t j = 0; j < 4; ++j)
-			{
-				res0 += ((T*)(&xmmRes))[j];
-				res1 += ((T*)(&xmmRes))[j + 4];
-			}
-			resData[i * 2] = res0;
-			resData[i * 2 + 1] = res1;
-		}
-
-		resData[3] = 0;
-
-		return DVector<T, 3>(resData);
+		auto resData = dot2in1_t(xmmV1, xmmV1, m0.xmm[0], m0.xmm[1]);
+		r.set(0, resData);
+		return r;
 	}
 
 
@@ -385,7 +333,7 @@ private:
 	{
 		for (uint8_t i = 0; i < Size; ++i)
 		{
-			mres.xmm[i] = _mm_add_t<T, __mT>(m0.xmm[i], m1.xmm[i]);
+			mres.xmm[i] = _mm_add_t(m0.xmm[i], m1.xmm[i]);
 		}
 	}
 
@@ -416,7 +364,7 @@ private:
 				rowData[3] = m0[3][i];
 
 				__mT rowXmm = _mm256_broadcast_t<T>(rowData);
-				rowXmm  = _mm_mul_t<T, __mT>(rowXmm, m1.xmm[j]);
+				rowXmm  = _mm_mul_t(rowXmm, m1.xmm[j]);
 
 				if constexpr(Size ==  2) // if 2 columns in one register
 				{
@@ -446,11 +394,11 @@ private:
 
 	static inline void multScalar(const DMatrix& m0, T scalar, DMatrix& mres) noexcept
 	{
-		__mT xmmS = _mm_set1_t<T, __mT>(scalar);
+		__mT xmmS = _mm_set1_t<__mT,T>(scalar);
 
 		for (size_t j = 0; j < Size; ++j) // columns in m1
 		{
-			mres.xmm[j] = _mm_mul_t<T, __mT>(xmmS, m0.xmm[j]);
+			mres.xmm[j] = _mm_mul_t(xmmS, m0.xmm[j]);
 		}
 	}
 };

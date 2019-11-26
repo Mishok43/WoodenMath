@@ -6,7 +6,7 @@
 WML_BEGIN
 
 template<typename T>
-class DQuaternion: public DVector<T, 4>
+class ALIGN_AS_VEC(T, 4) DQuaternion: public DVector<T, 4>
 {
 public:
 	DQuaternion(DVector<T, 3> u, T angle):
@@ -23,11 +23,11 @@ public:
 
 
 	explicit DQuaternion(const DVector<T, 4>& vec) noexcept
-		: DVector<T, 4>(vec.xmm)
+		: DVector<T, 4>(vec)
 	{ }
 
 	explicit DQuaternion(DVector<T, 4>&& vec) noexcept
-		: DVector<T, 4>(std::move(vec.xmm))
+		: DVector<T, 4>(std::move(vec))
 	{}
 
 	DQuaternion& operator=(const DVector<T, 4>& vec) = delete;
@@ -114,7 +114,7 @@ protected:
 
 	template<uint8_t VSize>
 	static inline void mul(const DQuaternion& u, const DVector<T, VSize>& v, DVector<T, VSize>& res)
-	{
+	{	
 		T w = u.getRealPart();
 		// 2w(uXv)
 		DVector<T, 4> r3 = cross(u, v)*(2*w);
@@ -151,8 +151,8 @@ template<typename T>
 inline DMatrix<T> makeMatrix(const DQuaternion<T>& q)
 {
 	DVector<T, 4> q2t = static_cast<DVector<T, 4>>(q)*static_cast<DVector<T, 4>>(q);
-	q2t = q2t.permute<0b10000001>(); // q2^2 q1^2 q1^2 q3^2 
-	DVector<T, 4> q2d = q2t.permute<0b00001111>(); // q3^2 q3^2 q2^2 q2^2
+	q2t = q2t.permuteEach<0b10000001>(); // q2^2 q1^2 q1^2 q3^2 
+	DVector<T, 4> q2d = q2t.permuteEach<0b00001111>(); // q3^2 q3^2 q2^2 q2^2
 
 	// 1.0-2.0*(q2^2-q3^2) | 1.0-2.0*(q1^2-q3^2) | 1.0-2.0*(q1^2-q2^2) 
 	DVector<T, 4> res0 = DVector<T, 4>(1.0) - (q2t + q2d)*2.0;
@@ -161,13 +161,13 @@ inline DMatrix<T> makeMatrix(const DQuaternion<T>& q)
 
 	DVector<T, 4> q1q = DVector<T, 4>(q.x())*static_cast<DVector<T, 4>>(q);
 	DVector<T, 4> q2q3 = DVector<T, 4>(q.y())*static_cast<DVector<T, 4>>(q);
-	q2q3 = q2q3.permute<0b00001010>(); // q2q3 q2q3 
+	q2q3 = q2q3.permuteEach<0b00001010>(); // q2q3 q2q3 
 
 	DVector<T, 4> q4q = DVector<T, 4>(q.w())*static_cast<DVector<T, 4>>(q);
-	DVector<T, 4> q4q1 = q4q.permute<0b00000000>(); //q4q1 q4q1
+	DVector<T, 4> q4q1 = q4q.permuteEach<0b00000000>(); //q4q1 q4q1
 
-	q1q = q1q.permute<0b10011001>(); // q1q2 q1q3 q1q2 q1q3
-	q4q = q4q.permute<0b01100110>(); // q4q3 q4q2 q4q3 q4q2
+	q1q = q1q.permuteEach<0b10011001>(); // q1q2 q1q3 q1q2 q1q3
+	q4q = q4q.permuteEach<0b01100110>(); // q4q3 q4q2 q4q3 q4q2
 
 	// 2(q2q3 - q1q4) | 2(q2q3 + q1q4)
 	DVector<T, 4> res1 = mad(q4q1, sign, q2q3)*2.0;

@@ -8,7 +8,7 @@ WML_BEGIN
 using namespace TypedSSE;
 
 template<typename T, uint8_t Size>
-class DPoint : public DVector<T, Size>
+class ALIGN_AS_VEC(T, Size) DPoint : public DVector<T, Size>
 {
 public:
 	using base = typename DVector<T, Size>;
@@ -63,7 +63,7 @@ public:
 
 	template<TTNumbrEqual(Size, 3)>
 	 DPoint(DVector<T, 3>&& v) :
-		 base(std::move(v.xmm))
+		 base(std::move(v))
 	{
 		 //this->insert(3, (T)1);
 	}
@@ -85,7 +85,7 @@ public:
 
 	template<TTNumbrEqual(Size, 2)>
 	 DPoint(DVector<T, 2>&& v) :
-		 base(std::move(v.xmm))
+		 base(std::move(v))
 	{
 		 //this->insert(3, (T)1);
 	}

@@ -5,8 +5,8 @@
 
 WML_BEGIN
 
-template<typename T, typename __mT = __m_t<T>, uint8_t alignment = sse_alignment_size_v<__mT>>
-class alignas(alignment) DRay
+template<typename T>
+class ALIGN_AS_VEC(T, 3) DRay
 {
 public:
 	DRay()

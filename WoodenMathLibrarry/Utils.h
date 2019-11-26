@@ -17,6 +17,30 @@ inline float lerp(float a, float b, float t)
 	return a * (1.0 - t) + b * t;
 }
 
+inline bool getRootsQuadraticEquation(float a, float b, float c, float& x0, float& x1)
+{
+	double discrim = (double)b * (double)b - 4 * (double)a * (double)c;
+	if (discrim < 0) return false;
+	double rootDiscrim = std::sqrt(discrim);
+
+	double q;
+	if (b < 0) q = -.5 * (b - rootDiscrim);
+	else       q = -.5 * (b + rootDiscrim);
+	x0 = q / a;
+	x1 = c / q;
+	if (x0 > x1) std::swap(x0, x1);
+	return true;
+}
+inline bool solveLinearSystem2x2(const float A[2][2], const float B[2], float*x0,
+								 float *x1)
+{
+	float det = A[0][0] * A[1][1] - A[0][1] * A[1][0];
+	if (std::abs(det) < 1e-10f) return false;
+	*x0 = (A[1][1] * B[0] - A[0][1] * B[1]) / det;
+	*x1 = (A[0][0] * B[1] - A[1][0] * B[0]) / det;
+	if (std::isnan(*x0) || std::isnan(*x1)) return false;
+	return true;
+}
 
 inline float clamp(float t, float a, float b)
 {
@@ -121,7 +145,57 @@ inline DVector3f sphericalToCasterian(float sinTheta,
 					 cosTheta);
 }
 
+inline bool catmullRomWeights(int size, const float *nodes, float x,
+					   int *offset, float *weights)
+{
 
+	if (!(x >= nodes[0] && x <= nodes[size - 1]))
+		return false;
+
+	
+	int idx = findInterval(size, [&](int i)
+	{
+		return nodes[i] <= x;
+	});
+	*offset = idx - 1;
+	float x0 = nodes[idx], x1 = nodes[idx + 1];
+	float t = (x - x0) / (x1 - x0), t2 = t * t, t3 = t2 * t;
+
+	
+	weights[1] = 2 * t3 - 3 * t2 + 1;
+	weights[2] = -2 * t3 + 3 * t2;
+
+	
+	if (idx > 0)
+	{
+		float w0 = (t3 - 2 * t2 + t) * (x1 - x0) / (x1 - nodes[idx - 1]);
+		weights[0] = -w0;
+		weights[2] += w0;
+	}
+	else
+	{
+		float w0 = t3 - 2 * t2 + t;
+		weights[0] = 0;
+		weights[1] -= w0;
+		weights[2] += w0;
+	}
+	
+	if (idx + 2 < size)
+	{
+		float w3 = (t3 - t2) * (x1 - x0) / (nodes[idx + 2] - x0);
+		weights[1] -= w3;
+		weights[3] = w3;
+	}
+	else
+	{
+		float w3 = t3 - t2;
+		weights[1] -= w3;
+		weights[2] += w3;
+		weights[3] = 0;
+	}
+
+	return true;
+}
 
 inline DVector3f sphericalToCasterian(float sinTheta, float cosTheta, float phi,
 										  const DVector3f& x, const DVector3f& y, const DVector3f& z)

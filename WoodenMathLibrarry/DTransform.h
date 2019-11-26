@@ -131,7 +131,7 @@ public:
 	{
 		n.insertUnsafe(3, (lT)0);
 		Matrix mInvTranspose = wml::transpose(mInvData);
-		return n * mInvTranspose;
+		return normalize(n * mInvTranspose);
 	}
 
 	template<typename lT, uint8_t lSize>
@@ -139,7 +139,7 @@ public:
 	{
 		n.insertUnsafe(3, (lT)0);
 		Matrix mInvTranspose = wml::transpose(mData);
-		return n * mInvTranspose;
+		return normalize(n * mInvTranspose);
 	}
 
 	template<typename lT>
@@ -148,6 +148,7 @@ public:
 		DRay<lT> ray;
 		ray.origin = (*this)(v.origin);
 		ray.dir = (*this)(v.dir);
+		ray.dir = normalize(ray.dir);
 		return ray;
 	}
 
@@ -157,6 +158,7 @@ public:
 		DRay<lT> ray;
 		ray.origin = (*this)(v.origin, inv_transform_type());
 		ray.dir = (*this)(v.dir, inv_transform_type());
+		ray.dir = normalize(ray.dir);
 		return ray;
 	}
 

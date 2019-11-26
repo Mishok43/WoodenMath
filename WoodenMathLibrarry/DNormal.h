@@ -8,7 +8,7 @@ WML_BEGIN
 using namespace TypedSSE;
 
 template<typename T, uint8_t Size>
-class DNormal: public DVector<T, Size>
+class ALIGN_AS_VEC(T, Size) DNormal: public DVector<T, Size>
 {
 public:
 	using base = typename DVector<T, Size>;

@@ -54,9 +54,6 @@
     <ClInclude Include="HTypeTraits.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="HSolver.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="HFloatUtils.h">
       <Filter>Header Files</Filter>
     </ClInclude>
@@ -78,12 +75,6 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="WoodenMathLibrarry.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="dllmain.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="HSolver.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
