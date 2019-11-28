@@ -1,6 +1,7 @@
 # WoodenMath
 WoodenMath - math library which contains vectors, quaternions, matrix and other mathematical constuctions and operations. 
 It supports SSE SIMD operations - SSE, AVX-2. C++17 with meta-programming. Usings GTest library for unit-testing components.
+Used as the main math library in [pbr raytracer](https://github.com/Mishok43/WoodenPBREngine)
 
 <b>Implemented</b>:
 1. DVector with support: float, double, int32, uint32 types. Supporting SSE, AVX-2, and their combination: several registers of AVX2 and several registers of SSE in one vector!
