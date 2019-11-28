@@ -28,13 +28,16 @@ It supports SSE SIMD operations - SSE, AVX-2. C++17 with meta-programming. Using
 <h2> Vectors </h2>
 
 <h3> Initialization </h3>
-C++:
+
+C++:   
+
 ```
   DVector<float, 12> v1(1.0);   
   float r[12] = { 2.0, 1.0, 1.0, 1.0, 2.0, 1.0, 1.0, 1.0, 1.0, 1.0, 4.0, 5.0 };   
   DVector<float, 12> v2(r);   
 ```   
 Assembler:   
+
 ```
 00007FF6F52FDBA9  vmovups     ymm0,ymmword ptr [__ymm@3f8000003f8000003f8000003f8000003f8000003f8000003f8000003f800000 
 00007FF6F52FDBB1  vmovups     xmm1,xmmword ptr [__xmm@3f8000003f8000003f8000003f800000 (07FF6F531B710h)]  
@@ -42,7 +45,7 @@ Assembler:
 00007FF6F52FDBBE  vmovups     xmmword ptr [rbp+20h],xmm1 
 ```   
 
-<i>(MSVC [generate](https://developercommunity.visualstudio.com/content/problem/19160/regression-from-vs-2015-in-ssseavx-instructions-ge.html) vmovups for an aligned memory data, too)</i>
+<i>(MSVC [generate](https://developercommunity.visualstudio.com/content/problem/19160/regression-from-vs-2015-in-ssseavx-instructions-ge.html) vmovups for an aligned memory data, too)</i>   
 
 <h3> Addition </h3>
 
@@ -98,9 +101,7 @@ Assembler:
 00007FF79062DE20  jne         main+2B6h (07FF79062DE36h)  
 00007FF79062DE22  lea         rcx,[TSS0<`template-parameter-7',wml::SIMDLines<float,16,3,1,4,__m128>::$02::prod, ?? :: ?? ::HA::wml::MXZ const * __ptr64 const> (07FF790658E00h)]  
 00007FF79062DE29  vmovups     xmmword ptr [`wml::SIMDLines<float,16,3,1,4,__m128>::inprod<3>'::`7'::zero (07FF790658E10h)],xmm6  
-00007FF79062DE31  call        _Init_thread_footer (07FF7906426ECh)  
 00007FF79062DE36  vmovups     xmm0,xmmword ptr [`wml::SIMDLines<float,16,3,1,4,__m128>::inprod<3>'::`7'::zero (07FF790658E10h)]  
-00007FF79062DE3E  mov         rcx,qword ptr [__imp_std::cout (07FF7906481E0h)]  
 00007FF79062DE45  vblendps    xmm1,xmm0,xmm7,7  
 00007FF79062DE4B  vhaddps     xmm0,xmm1,xmm1  
 00007FF79062DE4F  vextractps  dword ptr [rbp],xmm0,0  
