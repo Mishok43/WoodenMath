@@ -110,3 +110,13 @@ Assembler:
 00007FF79062DE62  vaddss      xmm1,xmm0,dword ptr [rbp]  
 00007FF79062DE67  vaddss      xmm1,xmm1,xmm8  
 ```
+<h2> Transformations </h2>
+
+```
+DTransformf world = DTransformf::makeScale(1.0f, 5.0f, 4.0f)*
+					DTransformf::makeRotateX(2.5)*
+					DTransformf::makeTranslate(1.0f, 0.0f, 10.0f);
+DPoint3f pos(5.0f, 2.5f, 5.4);
+DPoint3f posW = world(pos);
+DPoint3f posL = world(pos, INV_TRANFORM);
+```
