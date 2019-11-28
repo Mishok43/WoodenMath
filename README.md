@@ -34,7 +34,7 @@ C++:
   float r[12] = { 2.0, 1.0, 1.0, 1.0, 2.0, 1.0, 1.0, 1.0, 1.0, 1.0, 4.0, 5.0 };   
   DVector<float, 12> v2(r);   
 ```
-Assembler (MSVC generate[](https://developercommunity.visualstudio.com/content/problem/19160/regression-from-vs-2015-in-ssseavx-instructions-ge.html) vmovups for an aligned memory data, too :
+Assembler (MSVC [generate](https://developercommunity.visualstudio.com/content/problem/19160/regression-from-vs-2015-in-ssseavx-instructions-ge.html) vmovups for an aligned memory data, too :
 ```
 00007FF6F52FDBA9  vmovups     ymm0,ymmword ptr [__ymm@3f8000003f8000003f8000003f8000003f8000003f8000003f8000003f800000 
 00007FF6F52FDBB1  vmovups     xmm1,xmmword ptr [__xmm@3f8000003f8000003f8000003f800000 (07FF6F531B710h)]  
@@ -91,7 +91,6 @@ Assembler (MSVC generate[](https://developercommunity.visualstudio.com/content/p
 00007FF79062DE08  jle         main+2B6h (07FF79062DE36h)  
 00007FF79062DE0A  lea         rcx,[TSS0<`template-parameter-7',wml::SIMDLines<float,16,3,1,4,__m128>::$02::prod, ?? :: ?? ::HA::wml::MXZ const * __ptr64 const> (07FF790658E00h)]  
 00007FF79062DE11  vzeroupper  
-00007FF79062DE14  call        _Init_thread_header (07FF79064274Ch)  
 00007FF79062DE19  cmp         dword ptr [TSS0<`template-parameter-7',wml::SIMDLines<float,16,3,1,4,__m128>::$02::prod, ?? :: ?? ::HA::wml::MXZ const * __ptr64 const> (07FF790658E00h)],0FFFFFFFFh  
 00007FF79062DE20  jne         main+2B6h (07FF79062DE36h)  
 00007FF79062DE22  lea         rcx,[TSS0<`template-parameter-7',wml::SIMDLines<float,16,3,1,4,__m128>::$02::prod, ?? :: ?? ::HA::wml::MXZ const * __ptr64 const> (07FF790658E00h)]  
