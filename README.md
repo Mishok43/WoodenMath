@@ -22,3 +22,29 @@ It supports SSE SIMD operations - SSE, AVX-2. C++17 with meta-programming. Using
 1. DVector
 2. DMatrix
 3. DQuaternion
+
+
+<h1> Examples </h1>
+<h2> Vectors </h2>
+
+<h3> Initialization </h3>
+
+<code>
+  DVector<float, 12> v1(1.0);   
+	float r[12] = { 2.0, 1.0, 1.0, 1.0, 2.0, 1.0, 1.0, 1.0, 1.0, 1.0, 4.0, 5.0 };   
+	DVector<float, 12> v2(r);   
+</code>
+
+<h3> Addition </h3>
+
+<code>
+	DVector<float, 12> v3 = v1 + v2;   
+</code>
+  
+<h3> Dot </h3>
+
+<code>
+	DVector<float, 26> v1(1.0f);   
+  DVector<float, 26> v2(2.0f);   
+  DVector<float, 26> v3 = v1+v2;   
+</code>
