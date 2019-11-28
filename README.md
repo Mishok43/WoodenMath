@@ -33,14 +33,17 @@ C++:
   DVector<float, 12> v1(1.0);   
   float r[12] = { 2.0, 1.0, 1.0, 1.0, 2.0, 1.0, 1.0, 1.0, 1.0, 1.0, 4.0, 5.0 };   
   DVector<float, 12> v2(r);   
-```
-Assembler (MSVC [generate](https://developercommunity.visualstudio.com/content/problem/19160/regression-from-vs-2015-in-ssseavx-instructions-ge.html) vmovups for an aligned memory data, too :
+```   
+Assembler:   
 ```
 00007FF6F52FDBA9  vmovups     ymm0,ymmword ptr [__ymm@3f8000003f8000003f8000003f8000003f8000003f8000003f8000003f800000 
 00007FF6F52FDBB1  vmovups     xmm1,xmmword ptr [__xmm@3f8000003f8000003f8000003f800000 (07FF6F531B710h)]  
 00007FF6F52FDBB9  vmovups     ymmword ptr [rbp],ymm0  
 00007FF6F52FDBBE  vmovups     xmmword ptr [rbp+20h],xmm1 
-```
+```   
+
+<i>(MSVC [generate](https://developercommunity.visualstudio.com/content/problem/19160/regression-from-vs-2015-in-ssseavx-instructions-ge.html) vmovups for an aligned memory data, too)</i>
+
 <h3> Addition </h3>
 
 ```
