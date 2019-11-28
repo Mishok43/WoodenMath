@@ -2,6 +2,7 @@
 
 #include <immintrin.h>
 #include <smmintrin.h>
+
 #include "stdafx.h"
 
 namespace TypedSSE
@@ -673,6 +674,9 @@ namespace TypedSSE
 	}
 
 
+
+	
+
 	// _MM_ADD_T
 	template<typename __mT>
 	inline auto _mm_movemask_t(__mT a)
@@ -1335,6 +1339,38 @@ namespace TypedSSE
 		}
 	}
 
+	
+	template<typename __mT>
+	inline auto _mm_inprod_t(__mT a)
+	{
+		static_assert(false, "The type is not supported");
+		return;
+	}
+
+	template<>
+	inline auto _mm_inprod_t<__m128>(__m128 a)
+	{
+		__m128 temp = _mm_hadd_ps(a, a);
+		float a0, a1;
+		_MM_EXTRACT_FLOAT(a0, temp, 0);
+		_MM_EXTRACT_FLOAT(a1, temp, 1);
+		return a0 + a1;
+	}
+
+	template<>
+	inline auto _mm_inprod_t<__m256>(__m256 a)
+	{
+		__m256 temp1 = _mm256_hadd_ps(a, a);
+		__m128 templow = _mm_extractf128_ts<0>::f(temp1);
+		__m128 temphigh = _mm_extractf128_ts<1>::f(temp1);
+		__m128 temp2 = _mm_add_ps(templow, temphigh);
+		float a0, a1;
+		_MM_EXTRACT_FLOAT(a0, temp2, 0);
+		_MM_EXTRACT_FLOAT(a1, temp2, 1);
+		return a0 + a1;
+	}
+
+
 	template<typename __mT>
 	inline auto dot_t(const __mT& x0, const __mT& x1, const __mT& x2, const __mT& x3,
 					  const __mT& y0, const __mT& y1, const __mT& y2, const __mT& y3)
@@ -1370,6 +1406,8 @@ namespace TypedSSE
 		__mT128 hi128 = _mm_extractf128_ts<1>::f(temp);
 		return _mm_add_t((__mT128)temp, hi128);
 	}
+
+	
 
 	template<typename __mT, typename __mT128 = __m128_t<__mT_type_extract_t<__mT>>>
 	inline __mT128 dot2in1_t(const __mT& x0, const __mT& x1,

@@ -27,15 +27,15 @@
     <ClInclude Include="TDRay.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="TDVector.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="pch.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="Test.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="TDVector.h">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

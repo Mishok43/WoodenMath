@@ -11,7 +11,7 @@ WML_BEGIN
 
 using namespace TypedSSE;
 
-template<typename T, uint8_t Size>
+template<typename T, uint32_t Size>
 class DVectorPacked;
 
 using DVectorPacked1f = typename DVectorPacked<float, 1>;
@@ -21,15 +21,15 @@ using DVectorPacked4f = typename  DVectorPacked<float, 4>;
 
 struct V16
 {
-	static constexpr uint8_t v = 16;
+	static constexpr uint32_t v = 16;
 };
 
 struct V32
 {
-	static constexpr uint8_t v = 32;
+	static constexpr uint32_t v = 32;
 };
 
-template<typename T, uint8_t Width, uint32_t N, uint32_t NLines, uint32_t NPerLane = Width/sizeof(T), typename __mT = __m_t<T, Width>>
+template<typename T, uint32_t Width, uint32_t N, uint32_t NLines, uint32_t NPerLane = Width/sizeof(T), typename __mT = __m_t<T, Width>>
 struct alignas(Width) SIMDLines
 {
 public:
@@ -81,7 +81,7 @@ public:
 
 	void loadu(const T* d)
 	{
-		for (uint32_t i = 0; i < size(); i++, d += widthBytes())
+		for (uint32_t i = 0; i < size(); i++, d += width())
 		{
 			lines[i] = _mm_loadu_t<__mT>(d);
 		}
@@ -89,28 +89,37 @@ public:
 
 	void loada(const T* d)
 	{
-		for (uint32_t i = 0; i < size(); i++, d += widthBytes())
+		for (uint32_t i = 0; i < size(); i++, d += width())
 		{
 			lines[i] = _mm_loada_t<__mT>(d);
 		}
 	}
 
-	template<uint8_t NMask>
+	template<uint32_t NMask>
 	T inprod() const
 	{
-		constexpr uint8_t nUnMaskedLines = (NMask+ NPerLane -1)/ NPerLane - 1;
+		constexpr uint32_t nUnMaskedLines = NMask/ NPerLane;
 
-		__mT r = zeroXMM<__mT, T>();
-		for (uint32_t i = 0; i < nUnMaskedLines; i++)
+		__mT r;
+		if constexpr (nUnMaskedLines == 1)
 		{
-			r = _mm_add_t(r, lines[i]);
+			r = lines[0];
 		}
+		else
+		{
+			r = zeroXMM<__mT, T>();
+			for (uint32_t i = 0; i < nUnMaskedLines; i++)
+			{
+				r = _mm_add_t(r, lines[i]);
+			}
+		}
+		
 
-		if (nUnMaskedLines != NLines)
+		if constexpr (nUnMaskedLines != NLines)
 		{
 			static  __mT zero = zeroXMM<__mT, T>();
-			constexpr uint8_t NLaneMask = (NMask%NPerLane == 0) ? NPerLane : NMask%NPerLane;
-			static constexpr uint8_t mask = mask_gen<NLaneMask>();
+			constexpr uint32_t NLaneMask = (NMask%NPerLane == 0) ? NPerLane : NMask%NPerLane;
+			static constexpr uint32_t mask = mask_gen<NLaneMask>();
 
 			__mT residualLine = _mm_blend_ts<mask>::f(zero, lines[NLines - 1]);
 			r = _mm_add_t(r, residualLine);
@@ -120,8 +129,9 @@ public:
 		T* d = reinterpret_cast<T*>(&r);
 		for (uint32_t i = 0; i < width(); i++)
 		{
-			res += d[i];
+			res += d[i];	
 		}
+		//T res = _mm_inprod_t(r);
 		return res;
 	}
 
@@ -214,7 +224,7 @@ public:
 		}
 	}
 
-	template<uint8_t cmpType>
+	template<uint32_t cmpType>
 	void cmp(const SIMDLines& l, const SIMDLines& r)
 	{
 		for (uint32_t i = 0; i < size(); i++)
@@ -365,12 +375,12 @@ public:
 		}
 	}
 
-	void insert(uint8_t iLine, uint8_t pos, T value)
+	void insert(uint32_t iLine, uint32_t pos, T value)
 	{
 		lines[iLine] = _mm_insert_t(lines[iLine], value, pos);
 	}
 
-	template<uint8_t controlValue>
+	template<uint32_t controlValue>
 	void permuteEach()
 	{
 		for (uint32_t i = 0; i < size(); i++)
@@ -379,7 +389,7 @@ public:
 		}
 	}
 
-	template<uint8_t controlValue>
+	template<uint32_t controlValue>
 	inline void permute(uint32_t i)
 	{
 		lines[i] = _mm_permute_ts<controlValue>::f(lines[i]);
@@ -389,9 +399,9 @@ public:
 	inline const T* data() const{ return reinterpret_cast<const T*>(lines);}
 
 
-	static constexpr uint8_t widthBytes() { return Width; } 
+	static constexpr uint32_t widthBytes() { return Width; } 
 
-	static constexpr uint8_t width()  { return Width/sizeof(T); }
+	static constexpr uint32_t width()  { return Width/sizeof(T); }
 
 	static constexpr uint32_t size() { return NLines; }
 };
@@ -452,11 +462,11 @@ public:
 #define EXIST_L16 if constexpr (Exist16)
 #define EXIST_L32_L16 if constexpr (Exist16 && Exist32)
 
-	template<uint8_t NMask>
+	template<uint32_t NMask>
 	T inprod() const
 	{
 		EXIST_L32_L16
-		if constexpr (NMask > N32 && NMask <= N16)
+		if constexpr (NMask > N32 && NMask <= N16+N32)
 		{
 			return lines.l32.inprod<N32>() + lines.l16.inprod<NMask-N32>();
 		}
@@ -633,31 +643,31 @@ public:
 	{
 		EXIST_L32_ONLY
 		{
-			uint8_t iLine = i / lines.l32.width();
-			uint8_t offset = i % lines.l32.width();
+			uint32_t iLine = i / lines.l32.width();
+			uint32_t offset = i % lines.l32.width();
 			lines.l32.insert(iLine, offset, v);
 		}
 
 		EXIST_L16_ONLY
 		{
-			uint8_t iLine = i / lines.l16.width();
-			uint8_t offset = i % lines.l16.width();
+			uint32_t iLine = i / lines.l16.width();
+			uint32_t offset = i % lines.l16.width();
 			lines.l16.insert(iLine, offset, v);
 		}
 
 		EXIST_L32_L16
 		{
-			uint8_t iLine = i / lines.l32.width();
+			uint32_t iLine = i / lines.l32.width();
 			if (iLine > lines.l32.size())
 			{
 				i -= lines.l32.size()*lines.l32.width();
-				uint8_t iLine = i / lines.l16.width();
-				uint8_t offset = i % lines.l16.width();
+				uint32_t iLine = i / lines.l16.width();
+				uint32_t offset = i % lines.l16.width();
 				lines.l16.insert(iLine, offset, v);
 			}
 			else
 			{
-				uint8_t offset = i % lines.l32.width();
+				uint32_t offset = i % lines.l32.width();
 				lines.l32.insert(iLine, offset, v);
 			}
 		}	
@@ -966,7 +976,7 @@ public:
 		return (*this)[3];
 	}
 
-	inline constexpr uint8_t size() const
+	inline constexpr uint32_t size() const
 	{
 		return Size;
 	}
@@ -989,13 +999,13 @@ public:
 		return this->x()*this->y();
 	}
 
-	template<uint8_t LSize = Size>
+	template<uint32_t LSize = Size>
 	inline T length2() const
 	{
 		return dot<LSize>(*this, *this);
 	}
 
-	template<uint8_t LSize = Size>
+	template<uint32_t LSize = Size>
 	inline T length() const
 	{
 		return std::sqrt(length2());
@@ -1007,7 +1017,7 @@ public:
 		(*this) /= this->length();
 	}
 
-	template<uint8_t controlValue>
+	template<uint32_t controlValue>
 	inline DVector permuteEach() const
 	{
 		DVector v = *this;
@@ -1042,7 +1052,7 @@ public:
 	}
 
 
-	template<uint8_t CMPT>
+	template<uint32_t CMPT>
 	inline static DVector cmp(const DVector& l, const DVector& r)
 	{
 		DVector res;
@@ -1117,7 +1127,7 @@ public:
 	inline static T minComponent(const DVector& v)
 	{
 		T m = v[0];
-		for (uint8_t i = 1; i < Size; ++i)
+		for (uint32_t i = 1; i < Size; ++i)
 		{
 			if (m > v[i])
 			{
@@ -1136,18 +1146,18 @@ public:
 	inline static DVector permuteEach(const DVector &v, const DVector& indices)
 	{
 		DVector res;
-		for (uint8_t i = 0; i < Size; i++)
+		for (uint32_t i = 0; i < Size; i++)
 		{
 			res[i] = v[indices[i]];
 		}
 		return res;
 	}
 
-	inline static uint8_t maxDimension(const DVector& v)
+	inline static uint32_t maxDimension(const DVector& v)
 	{
 		T m = v[0];
-		uint8_t iM = 0;
-		for (uint8_t i = 1; i < Size; ++i)
+		uint32_t iM = 0;
+		for (uint32_t i = 1; i < Size; ++i)
 		{
 			if (m < v[i])
 			{
@@ -1162,7 +1172,7 @@ public:
 	inline static T maxComponent(const DVector& v)
 	{
 		T m = v[0];
-		for (uint8_t i = 1; i < Size; ++i)
+		for (uint32_t i = 1; i < Size; ++i)
 		{
 			if (m < v[i])
 			{
@@ -1291,7 +1301,7 @@ public:
 
 
 
-template<typename VT, uint8_t VSize>
+template<typename VT, uint32_t VSize>
 inline DVector<VT, VSize> abs(const DVector<VT, VSize>& v)
 {
 	return DVector<VT, VSize>::abs(v);
@@ -1303,74 +1313,74 @@ inline auto dot(const T& v1, const T& v2)
 	return T::dot<DotSize>(v1, v2);
 }
 
-template<typename VT, uint8_t VSize>
+template<typename VT, uint32_t VSize>
 inline VT dot(const DVector<VT, VSize>& v1, const DVector<VT, VSize>& v2)
 {
 	return DVector<VT, VSize>::dot(v1, v2);
 }
 
-template<typename VT, uint8_t VSize, typename T2, typename T3>
+template<typename VT, uint32_t VSize, typename T2, typename T3>
 inline auto clamp(const DVector<VT, VSize>& v, const T2& low, const T3& high)
 {
 	return  DVector<VT, VSize>::clamp(v, (DVector<VT, VSize>)low, (DVector<VT, VSize>)high);
 }
 //
-//template<typename VT, uint8_t VSize>
+//template<typename VT, uint32_t VSize>
 //inline DVector<VT, VSize> clamp(const DVector<VT, VSize>& v, DVector<VT, VSize> low, DVector<VT, VSize> high = DVector<VT, VSize>(std::numeric_limits<float>::infinity()))
 //{
 //	return DVector<VT, VSize>::clamp(v, low, high);
 //}
 //
-//template<typename VT, uint8_t VSize>
+//template<typename VT, uint32_t VSize>
 //inline DVector<VT, VSize> clamp(const DVector<VT, VSize>& v, VT low, DVector<VT, VSize> high = DVector<VT, VSize>(std::numeric_limits<float>::infinity()))
 //{
 //	return clamp(v, DVector<VT, VSize>(low), high);
 //}
 //
-//template<typename VT, uint8_t VSize>
+//template<typename VT, uint32_t VSize>
 //inline DVector<VT, VSize> clamp(const DVector<VT, VSize>& v, DVector<VT, VSize> low, VT high = DVector<VT, VSize>(std::numeric_limits<float>::infinity()))
 //{
 //	return clamp(v, low, DVector<VT, VSize>(high));
 //}
 //
-//template<typename VT, uint8_t VSize>
+//template<typename VT, uint32_t VSize>
 //inline DVector<VT, VSize> clamp(const DVector<VT, VSize>& v, VT low, VT high = std::numeric_limits<float>::infinity())
 //{
 //	return clamp(v, DVector<VT, VSize>(low), DVector<VT, VSize>(high));
 //}
 
-template<typename VT, uint8_t VSize>
+template<typename VT, uint32_t VSize>
 inline VT absDot(const DVector<VT, VSize>& v1, const DVector<VT, VSize>& v2)
 {
 	return DVector<VT, VSize>::absDot(v1, v2);
 }
 
-template<typename VT, uint8_t VSize>
+template<typename VT, uint32_t VSize>
 inline DVector<VT, VSize> cross(const DVector<VT, VSize>& v1, const DVector<VT, VSize>& v2)
 {
 	return DVector<VT, VSize>::cross(v1, v2);
 }
 
-template<typename VT, uint8_t VSize>
+template<typename VT, uint32_t VSize>
 inline DVector<VT, VSize> lerp(const DVector<VT, VSize>& v1, const DVector<VT, VSize>& v2, const DVector<VT, VSize>& t)
 {
 	return DVector<VT, VSize>::lerp(v1, v2, t);
 }
 
 
-template<typename VT, uint8_t VSize>
+template<typename VT, uint32_t VSize>
 inline VT minComponent(const DVector<VT, VSize>& v)
 {
 	return DVector<VT, VSize>::minComponent(v);
 }
 
-template<typename VT, uint8_t VSize>
+template<typename VT, uint32_t VSize>
 inline bool isSameHemisphere(const DVector<VT, VSize> &w, const DVector<VT, VSize> &wp)
 {
 	return DVector<VT, VSize>::isSameHemisphere(w, wp);
 }
 
-//template<typename VT, uint8_t VSize>
+//template<typename VT, uint32_t VSize>
 //inline DVector<VT, VSize> permuteEach(const DVector<VT, VSize> &v, const DVector<uint32_t, VSize>& indices)
 //{
 //	return DVector<VT, VSize>::permuteEach(v, indices);
@@ -1383,38 +1393,38 @@ inline T permuteEach(const T &v, const K& indices)
 }
 
 
-template<typename VT, uint8_t VSize>
-inline uint8_t maxDimension(const DVector<VT, VSize>& v)
+template<typename VT, uint32_t VSize>
+inline uint32_t maxDimension(const DVector<VT, VSize>& v)
 {
 	return DVector<VT, VSize>::maxDimension(v);
 }
 
-template<typename VT, uint8_t VSize>
+template<typename VT, uint32_t VSize>
 inline VT maxComponent(const DVector<VT, VSize>& v)
 {
 	return DVector<VT, VSize>::maxComponent(v);
 }
 
-template<typename VT, uint8_t VSize>
+template<typename VT, uint32_t VSize>
 inline DVector<VT, VSize> ceil(const DVector<VT, VSize>& v)
 {
 	return DVector<VT, VSize>::ceil(v);
 }
 
-template<typename VT, uint8_t VSize>
+template<typename VT, uint32_t VSize>
 inline DVector<VT, VSize> floor(const DVector<VT, VSize>& v)
 {
 	return DVector<VT, VSize>::floor(v);
 }
 
 
-template<typename VT, uint8_t VSize>
+template<typename VT, uint32_t VSize>
 inline DVector<VT, VSize> exp(const DVector<VT, VSize>& v)
 {
 	return DVector<VT, VSize>::exp(v);
 }
 
-template<typename VT, uint8_t VSize>
+template<typename VT, uint32_t VSize>
 inline DVector<VT, VSize> reflect(const DVector<VT, VSize>& wo, const DVector<VT, VSize>& n)
 {
 	return DVector<VT, VSize>::reflect(wo, n);
@@ -1422,39 +1432,39 @@ inline DVector<VT, VSize> reflect(const DVector<VT, VSize>& wo, const DVector<VT
 
 
 
-template<typename VT, uint8_t VSize>
+template<typename VT, uint32_t VSize>
 inline DVector<VT, VSize> sqrt(const DVector<VT, VSize>& v)
 {
 	return DVector<VT, VSize>::sqrt(v);
 }
 
-template<typename VT, uint8_t VSize>
+template<typename VT, uint32_t VSize>
 inline DVector<VT, VSize> lerp(const DVector<VT, VSize>& v1, const DVector<VT, VSize>& v2, VT t)
 {
 	return lerp(v1, v2, DVector<VT, VSize>(t));
 }
 
-template<typename VT, uint8_t VSize>
+template<typename VT, uint32_t VSize>
 inline DVector<VT, VSize> mad(const DVector<VT, VSize>& v1, float s, const DVector<VT, VSize>& v2)
 {
 	return DVector<VT, VSize>::mad(v1, s, v2);
 }
-template<typename VT, uint8_t VSize>
+template<typename VT, uint32_t VSize>
 inline DVector<VT, VSize> mad(const DVector<VT, VSize>& v1, const DVector<VT, VSize>& v2, const DVector<VT, VSize>& v3)
 {
 	return DVector<VT, VSize>::mad(v1, v2, v3);
 }
-template<typename VT, uint8_t VSize>
+template<typename VT, uint32_t VSize>
 inline DVector<VT, VSize> normalize(const DVector<VT, VSize>& v)
 {
 	return DVector<VT, VSize>::normalize(v);
 }
-template<typename VT, uint8_t VSize>
+template<typename VT, uint32_t VSize>
 inline DVector<VT, VSize> minv(const DVector<VT, VSize>& v1, const DVector<VT, VSize>& v2)
 {
 	return DVector<VT, VSize>::minv(v1, v2);
 }
-template<typename VT, uint8_t VSize>
+template<typename VT, uint32_t VSize>
 inline DVector<VT, VSize> maxv(const DVector<VT, VSize>& v1, const DVector<VT, VSize>& v2)
 {
 	return DVector<VT, VSize>::maxv(v1, v2);
@@ -1462,7 +1472,7 @@ inline DVector<VT, VSize> maxv(const DVector<VT, VSize>& v1, const DVector<VT, V
 
 
 
-template<typename VT, uint8_t VSize>
+template<typename VT, uint32_t VSize>
 inline void makeBasisByVector(const DVector<VT, VSize>& v1, DVector<VT, VSize>& v2, DVector<VT, VSize>& v3)
 {
 
@@ -1480,37 +1490,37 @@ inline void makeBasisByVector(const DVector<VT, VSize>& v1, DVector<VT, VSize>& 
 }
 
 
-template<typename VT, uint8_t VSize>
+template<typename VT, uint32_t VSize>
 inline DVector<VT, VSize> cndLoad(const DVector<VT, VSize>& predicate, const DVector<VT, VSize>& trueV, const DVector<VT, VSize>& falseV)
 {
 	return DVector<VT, VSize>::cndLoad(predicate, trueV, falseV);
 }
 
-template<typename VT, uint8_t VSize>
+template<typename VT, uint32_t VSize>
 inline DVector<VT, VSize> cndLoad(const DVector<VT, VSize>& predicate, VT trueV, const DVector<VT, VSize>& falseV)
 {
 	return cndLoad(predicate, DVector<VT, VSize>(trueV), falseV);
 }
 
-template<typename VT, uint8_t VSize>
+template<typename VT, uint32_t VSize>
 inline DVector<VT, VSize> cndLoad(const DVector<VT, VSize>& predicate, const DVector<VT, VSize>&  trueV, VT falseV)
 {
 	return cndLoad(predicate, trueV, DVector<VT, VSize>(falseV));
 }
 
-template<typename VT, uint8_t VSize>
+template<typename VT, uint32_t VSize>
 inline DVector<VT, VSize> cndLoad(const DVector<VT, VSize>& predicate, VT trueV, VT falseV)
 {
 	return cndLoad(predicate, DVector<VT, VSize>(trueV), DVector<VT, VSize>(falseV));
 }
 
-template<typename VT, uint8_t VSize>
+template<typename VT, uint32_t VSize>
 inline DVector<VT, VSize> cmpEQL(const DVector<VT, VSize>& l, const DVector<VT, VSize>& r)
 {
 	return DVector<VT, VSize>::cmp<0>(l, r);
 }
 
-template<typename VT, uint8_t VSize>
+template<typename VT, uint32_t VSize>
 inline DVector<VT, VSize> cmpEQL(const DVector<VT, VSize>& l, VT r)
 {
 	return cmpEQL(l, DVector<VT, VSize>(r));
@@ -1534,7 +1544,7 @@ using DVector2u = typename  DVector<uint32_t, 2>;
 using DVector3u = typename  DVector<uint32_t, 3>;
 using DVector4u = typename  DVector<uint32_t, 4>;
 
-template<typename T, uint8_t Size>
+template<typename T, uint32_t Size>
 class DVectorPacked
 {
 public:
@@ -1608,7 +1618,7 @@ public:
 		return (*this)[3];
 	}
 
-	constexpr uint8_t size() const
+	constexpr uint32_t size() const
 	{
 		return Size;
 	}
