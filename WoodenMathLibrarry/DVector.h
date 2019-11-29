@@ -122,7 +122,15 @@ public:
 			static constexpr uint32_t mask = mask_gen<NLaneMask>();
 
 			__mT residualLine = _mm_blend_ts<mask>::f(zero, lines[NLines - 1]);
-			r = _mm_add_t(r, residualLine);
+
+			if constexpr (nUnMaskedLines == 0)
+			{
+				r = residualLine;
+			}
+			else
+			{
+				r = _mm_add_t(r, residualLine);
+			}
 		}
 
 		T res = 0;
