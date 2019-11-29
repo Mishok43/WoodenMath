@@ -62,7 +62,7 @@ Assembler:
 ```
   DVector<float, 19> v1(1.0f);   
   DVector<float, 19> v2(2.0f);   
-  DVector<float, 19> v3 = v1+v2;   
+  float v3 = dot(v1, v2);   
 ```
 ```
 00007FF79062DD74  vmovups     ymm2,ymmword ptr [rbp+0C0h]  
